@@ -1,6 +1,7 @@
 package com.minidashboard.app.di.modules
 
 import com.minidashboard.app.Platform
+import com.minidashboard.app.domain.cache.CronDAO
 import com.minidashboard.app.getPlatform
 import com.minidashboard.app.presentation.home.HomeViewModel
 import com.minidashboard.app.presentation.monitor.create.CreateMonitorViewModel
@@ -11,6 +12,9 @@ val commonModules = module {
     single<Platform> { getPlatform() }
 
     factory { HomeViewModel() }
-    factory { MonitorViewModel() }
-    factory { CreateMonitorViewModel() }
+    factory { MonitorViewModel(get()) }
+    factory { CreateMonitorViewModel(get()) }
+
+    // DAO
+    factory { CronDAO(get()) }
 }

@@ -2,9 +2,16 @@ package com.minidashboard.app.data.models
 
 // Define a sealed interface for cron processes
 sealed interface CronProcess {
+    val cronCommmon: CronCommmon
     val setup: SetupConfig
     fun execute()
 }
+
+data class CronCommmon(
+    val title: String,
+    val description: String,
+    val active: Boolean
+)
 
 // Represent different configurations for each process type
 sealed interface SetupConfig
@@ -16,28 +23,40 @@ data class JVMSetupConfig(val scriptPath: String, val args: List<String> = empty
 
 
 // Implement different cron processes with specific configurations
-data class HttpCronProcess(override val setup: HttpSetupConfig) : CronProcess {
+data class HttpCronProcess(
+    override val cronCommmon: CronCommmon,
+    override val setup: HttpSetupConfig,
+) : CronProcess {
     override fun execute() {
         println("Executing HTTP request to ${setup.url}")
         // Implement the HTTP logic here (e.g., using Ktor or OkHttp)
     }
 }
 
-data class WebSocketCronProcess(override val setup: WebSocketSetupConfig) : CronProcess {
+data class WebSocketCronProcess(
+    override val cronCommmon: CronCommmon,
+    override val setup: WebSocketSetupConfig
+) : CronProcess {
     override fun execute() {
         println("Connecting to WebSocket ${setup.endpoint}")
         // Implement WebSocket connection logic here (e.g., using a WebSocket library)
     }
 }
 
-data class PythonCronProcess(override val setup: PythonSetupConfig) : CronProcess {
+data class PythonCronProcess(
+    override val cronCommmon: CronCommmon,
+    override val setup: PythonSetupConfig
+) : CronProcess {
     override fun execute() {
         println("Executing Python script at ${setup.scriptPath} with args ${setup.args}")
     // Execute the Python process (e.g., using ProcessBuilder)
     }
 }
 
-data class JVMronProcess(override val setup: PythonSetupConfig) : CronProcess {
+data class JVMronProcess(
+    override val cronCommmon: CronCommmon,
+    override val setup: PythonSetupConfig
+) : CronProcess {
     override fun execute() {
         println("Executing JVM script at ${setup.scriptPath} with args ${setup.args}")
     // Execute the Python process (e.g., using ProcessBuilder)

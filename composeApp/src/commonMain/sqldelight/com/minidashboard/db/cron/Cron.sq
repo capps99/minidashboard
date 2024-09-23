@@ -1,0 +1,12 @@
+-- Create 'cron' table.
+CREATE TABLE cron(
+    uuid TEXT,
+    setup TEXT,
+    status INTEGER
+);
+
+insert_cron:
+INSERT INTO cron (uuid, setup, status) VALUES(?, ?, ?);
+
+select_cron:
+SELECT * FROM cron;

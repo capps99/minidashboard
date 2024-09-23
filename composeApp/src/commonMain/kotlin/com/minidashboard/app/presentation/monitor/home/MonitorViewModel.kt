@@ -2,6 +2,8 @@ package com.minidashboard.app.presentation.monitor.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.minidashboard.app.data.models.CronProcess
+import com.minidashboard.app.domain.app.CronUseCase
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,37 +14,24 @@ sealed interface MonitorState {
     data object Initial: MonitorState
     data class Data(
         val attempt: Int = 0,
-        val crons: List<CronItem> = emptyList()
+        val crons: List<CronProcess> = emptyList()
     ): MonitorState
 }
 sealed interface MonitorActions {
     data object Load: MonitorActions
 }
 
-data class CronItem(
-    val title: String,
-    val description: String,
-    val statuses: List<Status> = emptyList()// Multiple statuses
-)
-
 enum class Status {
     CORRECT, WARNING, ERROR
 }
 
-class MonitorViewModel : ViewModel(){
+class MonitorViewModel(
+    private val cronUseCase: CronUseCase,
+) : ViewModel(){
 
     val state = MutableStateFlow<MonitorState>(MonitorState.Initial)
 
-    private val cronList = mutableListOf(
-        CronItem("cron 1","description 1"),
-        CronItem("cron 2","description 2"),
-        CronItem("cron 3","description 3"),
-        CronItem("cron 4","description 4"),
-        CronItem("cron 5","description 5"),
-        CronItem("cron 6","description 6"),
-        CronItem("cron 7","description 7"),
-        CronItem("cron 8","description 8"),
-    )
+    private val cronList = listOf<CronProcess>()
 
     fun processAction(action: MonitorActions){
         when(action){
@@ -52,12 +41,14 @@ class MonitorViewModel : ViewModel(){
 
     private fun load(){
         Napier.d { "start load" }
+        val crons = cronUseCase.list()
         val data = MonitorState.Data(
+            attempt = crons.size,
             crons = cronList,
         )
         state.value = data
 
-        generateRandomStatuses()
+        // generateRandomStatuses()
     }
 
     private fun create(){
@@ -77,7 +68,7 @@ class MonitorViewModel : ViewModel(){
         }
     }
 
-    private fun generateRandomStatuses() {
+/*     private fun generateRandomStatuses() {
         // Launch a coroutine in the ViewModelScope
         viewModelScope.launch {
             while (true) {
@@ -102,6 +93,6 @@ class MonitorViewModel : ViewModel(){
                 }
             }
         }
-    }
+    }  */
 
 }

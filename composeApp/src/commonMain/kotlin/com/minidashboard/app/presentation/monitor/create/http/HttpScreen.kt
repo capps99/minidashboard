@@ -7,12 +7,15 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import com.minidashboard.app.data.models.CronCommmon
+import com.minidashboard.app.data.models.CronProcess
+import com.minidashboard.app.data.models.HttpCronProcess
 import com.minidashboard.app.data.models.HttpSetupConfig
 
 @Composable
 fun HttpScreen(
     modifier: Modifier = Modifier,
-    onCreated: (HttpSetupConfig) -> Unit = {}
+    onCreated: (CronProcess) -> Unit = {}
 ) {
     // State variables for the form fields
     var title by remember { mutableStateOf("") }
@@ -53,9 +56,15 @@ fun HttpScreen(
     Button(
         onClick = {
             onCreated(
-                HttpSetupConfig(
-                    url = url,
-                    parameters = mapOf()
+                HttpCronProcess(
+                    cronCommmon = CronCommmon(
+                        title = title,
+                        description = description,
+                        active = true
+                    ),
+                    setup = HttpSetupConfig(
+                        url = url
+                    )
                 )
             )
                   },

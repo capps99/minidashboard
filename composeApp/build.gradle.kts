@@ -1,18 +1,20 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+//import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+//import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
-    @OptIn(ExperimentalWasmDsl::class)
+    // enable when wasm supports mjultiplaform (soon)
+    /*@OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         moduleName = "composeApp"
         browser {
@@ -28,7 +30,7 @@ kotlin {
             }
         }
         binaries.executable()
-    }
+    }*/
 
     androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -56,6 +58,7 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.sqldelight.android.driver)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -74,12 +77,21 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             //implementation(libs.koin.compose.viewmodel.navigation)
-
             api(libs.precompose)
+
+            implementation(libs.sqldelight.coroutines)
+            implementation(libs.sqldelight.adapters)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
+            implementation(libs.sqldelight.sqlite.driver)
+        }
+        nativeMain.dependencies {
+            implementation(libs.sqldelight.native.driver)
+        }
+        jvmMain.dependencies {
+            //implementation(libs.sqldelight.sqlite.driver)
         }
     }
 }
@@ -131,4 +143,14 @@ compose.desktop {
             packageVersion = "1.0.0"
         }
     }
+}
+
+sqldelight {
+    databases {
+        create("Database") {
+            packageName.set("com.minidashboard.db")
+            // generateAsync.set(true)
+        }
+    }
+    linkSqlite.set(true)
 }

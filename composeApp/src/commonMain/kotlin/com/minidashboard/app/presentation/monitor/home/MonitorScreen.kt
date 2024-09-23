@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.minidashboard.app.data.models.CronProcess
 import com.minidashboard.app.presentation.widgets.BottomEndFAB
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
@@ -70,7 +71,7 @@ fun DataContent(
 }
 
 @Composable
-fun ListItemView(item: CronItem) {
+fun ListItemView(item: CronProcess) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -84,7 +85,7 @@ fun ListItemView(item: CronItem) {
         ) {
             // Title
             Text(
-                text = item.title,
+                text = item.cronCommmon.title,
                 style = MaterialTheme.typography.body1,
                 color = Color.Black
             )
@@ -92,7 +93,7 @@ fun ListItemView(item: CronItem) {
             // Description
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = item.description,
+                text = item.cronCommmon.description,
                 style = MaterialTheme.typography.body2,
                 color = Color.Gray
             )
@@ -107,7 +108,7 @@ fun ListItemView(item: CronItem) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 // Iterate over each status and create a colored box
-                item.statuses.forEach { status ->
+                /*item.statuses.forEach { status ->
                     Box(
                         modifier = Modifier
                             .weight(1f)  // Equal weight for each box
@@ -121,7 +122,7 @@ fun ListItemView(item: CronItem) {
                             )
                     )
                     Spacer(modifier = Modifier.width(4.dp)) // Add spacing between boxes
-                }
+                }*/
             }
         }
     }

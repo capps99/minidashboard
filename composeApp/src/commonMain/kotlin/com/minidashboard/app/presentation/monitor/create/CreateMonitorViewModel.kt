@@ -1,13 +1,14 @@
 package com.minidashboard.app.presentation.monitor.create
 
 import androidx.lifecycle.ViewModel
-import com.minidashboard.app.data.models.SetupConfig
+import com.minidashboard.app.data.models.CronProcess
+import com.minidashboard.app.domain.app.CronUseCase
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 
 sealed interface CreateMonitorAction {
     data object Increment: CreateMonitorAction
-    data class Create(val process: SetupConfig): CreateMonitorAction
+    data class Create(val process: CronProcess): CreateMonitorAction
 }
 
 sealed interface CreateMonitorState {
@@ -17,7 +18,9 @@ sealed interface CreateMonitorState {
     ): CreateMonitorState
 }
 
-class CreateMonitorViewModel : ViewModel() {
+class CreateMonitorViewModel(
+    val useCase: CronUseCase
+) : ViewModel() {
 
     val state = MutableStateFlow<CreateMonitorState>(CreateMonitorState.Initial)
 
@@ -28,8 +31,9 @@ class CreateMonitorViewModel : ViewModel() {
         }
     }
 
-    private fun create(process: CreateMonitorAction.Create){
-        Napier.d {"Monitor with $process"}
+    private fun create(action: CreateMonitorAction.Create){
+        Napier.d {"Monitor with $action"}
+        useCase.insert(action.process)
     }
 
     private fun increment(){
