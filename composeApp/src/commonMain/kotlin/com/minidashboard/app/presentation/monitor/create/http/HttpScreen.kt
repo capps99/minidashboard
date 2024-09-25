@@ -11,12 +11,17 @@ import com.minidashboard.app.data.models.CronCommmon
 import com.minidashboard.app.data.models.CronProcess
 import com.minidashboard.app.data.models.HttpCronProcess
 import com.minidashboard.app.data.models.HttpSetupConfig
+import com.minidashboard.app.presentation.monitor.create.TestMonitorAction
+import com.minidashboard.app.presentation.monitor.create.TestMonitorViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun HttpScreen(
     modifier: Modifier = Modifier,
-    onCreated: (CronProcess) -> Unit = {}
+    onCreated: (CronProcess) -> Unit = {},
 ) {
+    val viewModel = koinViewModel<TestMonitorViewModel>()
+
     // State variables for the form fields
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -52,6 +57,28 @@ fun HttpScreen(
         modifier = Modifier.fillMaxWidth()
     )
 
+    Button(
+        onClick = {
+            viewModel.processAction(
+                TestMonitorAction.Test(
+                    HttpCronProcess(
+                        cronCommmon = CronCommmon(
+                            title = title,
+                            description = description,
+                            active = true
+                        ),
+                        setup = HttpSetupConfig(
+                            url = url
+                        )
+                    )
+                )
+            )
+        },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text("Test")
+    }
+
     // Submit Button
     Button(
         onClick = {
@@ -67,10 +94,10 @@ fun HttpScreen(
                     )
                 )
             )
-                  },
+        },
 //        enabled = submitEnabled,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text("Submit")
+        Text("Save")
     }
 }

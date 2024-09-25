@@ -1,10 +1,15 @@
 package com.minidashboard.app.data.models
 
+import io.github.aakira.napier.Napier
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+
 // Define a sealed interface for cron processes
 sealed interface CronProcess {
     val cronCommmon: CronCommmon
     val setup: SetupConfig
-    fun execute()
+    suspend fun execute()
 }
 
 data class CronCommmon(
@@ -27,9 +32,13 @@ data class HttpCronProcess(
     override val cronCommmon: CronCommmon,
     override val setup: HttpSetupConfig,
 ) : CronProcess {
-    override fun execute() {
+    override suspend fun execute() {
         println("Executing HTTP request to ${setup.url}")
         // Implement the HTTP logic here (e.g., using Ktor or OkHttp)
+        val client = HttpClient()
+        val response = client.get(setup.url)
+        println(response)
+        println(response.bodyAsText())
     }
 }
 
@@ -37,7 +46,7 @@ data class WebSocketCronProcess(
     override val cronCommmon: CronCommmon,
     override val setup: WebSocketSetupConfig
 ) : CronProcess {
-    override fun execute() {
+    override suspend fun execute() {
         println("Connecting to WebSocket ${setup.endpoint}")
         // Implement WebSocket connection logic here (e.g., using a WebSocket library)
     }
@@ -47,7 +56,7 @@ data class PythonCronProcess(
     override val cronCommmon: CronCommmon,
     override val setup: PythonSetupConfig
 ) : CronProcess {
-    override fun execute() {
+    override suspend fun execute() {
         println("Executing Python script at ${setup.scriptPath} with args ${setup.args}")
     // Execute the Python process (e.g., using ProcessBuilder)
     }
@@ -57,15 +66,8 @@ data class JVMronProcess(
     override val cronCommmon: CronCommmon,
     override val setup: PythonSetupConfig
 ) : CronProcess {
-    override fun execute() {
+    override suspend fun execute() {
         println("Executing JVM script at ${setup.scriptPath} with args ${setup.args}")
     // Execute the Python process (e.g., using ProcessBuilder)
-    }
-}
-
-// Function to run all cron processes
-fun runCronProcesses(cronProcesses: List<CronProcess>) {
-    cronProcesses.forEach { process ->
-        process.execute()  // Each process will execute its specific logic
     }
 }

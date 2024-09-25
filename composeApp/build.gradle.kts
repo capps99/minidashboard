@@ -58,7 +58,9 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.kotlinx.coroutines.android)
             implementation(libs.sqldelight.android.driver)
+            implementation(libs.ktor.client.okhttp)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -81,14 +83,19 @@ kotlin {
 
             implementation(libs.sqldelight.coroutines)
             implementation(libs.sqldelight.adapters)
+
+            implementation(libs.ktor.client.core)
+            implementation(libs.kotlinx.coroutines.core)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.sqldelight.sqlite.driver)
+            implementation(libs.ktor.client.jvm)
         }
         nativeMain.dependencies {
             implementation(libs.sqldelight.native.driver)
+            implementation(libs.ktor.client.darwin)//2875
         }
         jvmMain.dependencies {
             //implementation(libs.sqldelight.sqlite.driver)
