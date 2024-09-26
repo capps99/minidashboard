@@ -1,6 +1,8 @@
 package com.minidashboard.app.presentation.monitor.create
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.Text
@@ -22,6 +24,7 @@ fun CreateMonitorScreen(
 ) {
     val viewModel = koinViewModel<CreateMonitorViewModel>()
     var showTypeDialog by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()  // Remember the scroll state
     var typeSelected: Pair<String, String?> by remember { mutableStateOf("Select a Cron Type" to "") }
 
     val state by viewModel.state.collectAsState()
@@ -29,6 +32,7 @@ fun CreateMonitorScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)  // Add vertical scroll functionality
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -39,13 +43,12 @@ fun CreateMonitorScreen(
 
         // Submit Button
         Row (
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Type: ")
             Button(
                 onClick = { showTypeDialog = true },
-                // enabled = submitEnabled,
-                modifier = Modifier.fillMaxWidth()
+                modifier = modifier.fillMaxWidth()
             ) {
                 Text(typeSelected.first)
             }

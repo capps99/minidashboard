@@ -85,7 +85,7 @@ kotlin {
             implementation(libs.sqldelight.adapters)
 
             implementation(libs.ktor.client.core)
-            implementation(libs.kotlinx.coroutines.core)
+           //  implementation(libs.kotlinx.coroutines.core)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

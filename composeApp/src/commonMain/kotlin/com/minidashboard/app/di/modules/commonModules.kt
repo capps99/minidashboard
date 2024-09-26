@@ -5,7 +5,7 @@ import com.minidashboard.app.domain.cache.CronDAO
 import com.minidashboard.app.getPlatform
 import com.minidashboard.app.presentation.home.HomeViewModel
 import com.minidashboard.app.presentation.monitor.create.CreateMonitorViewModel
-import com.minidashboard.app.presentation.monitor.create.TestMonitorViewModel
+import com.minidashboard.app.presentation.monitor.create.http.HttpScreenViewModel
 import com.minidashboard.app.presentation.monitor.home.MonitorViewModel
 import org.koin.dsl.module
 
@@ -15,7 +15,7 @@ val commonModules = module {
     factory { HomeViewModel() }
     factory { MonitorViewModel(get()) }
     factory { CreateMonitorViewModel(get()) }
-    factory { TestMonitorViewModel() }
+    factory { HttpScreenViewModel() }
 
     // DAO
     factory { CronDAO(get()) }
