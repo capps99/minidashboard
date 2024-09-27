@@ -43,6 +43,7 @@ fun CreateMonitorScreen(
 
         // Submit Button
         Row (
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Type: ")

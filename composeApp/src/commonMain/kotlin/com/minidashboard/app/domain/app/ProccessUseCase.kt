@@ -3,27 +3,39 @@ package com.minidashboard.app.domain.app
 import com.minidashboard.app.data.models.CronProcess
 import com.minidashboard.app.data.models.ProccessResult
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.jetbrains.skiko.currentNanoTime
 
-// Define a type alias for clarity: each process is a pair of a function and its interval time in seconds
-typealias Process = Pair<CronProcess, Long>
+private var parentJob: CompletableJob? = null
 
 // Function to run multiple processes with different times
-fun runProcesses(processes: List<Process>, result: (ProccessResult) -> Unit = {}) = GlobalScope.launch {
-    // For each process, launch a coroutine that runs at its specified interval
-    for ((task, interval) in processes) {
-        launch {
+fun startProcesses(processes: List<CronProcess>, result: (ProccessResult) -> Unit = {}) {
+    parentJob = Job()
+
+    val job = parentJob ?: return
+    val scope = CoroutineScope(Dispatchers.IO + job)
+
+    Napier.d { "Starting the cron procceses with: ${processes.size}" }
+
+    scope.launch {
+        // For each process, launch a coroutine that runs at its specified interval
+
+        for (task in processes) {
             while (true) {
                 task.execute {
                     result(it)
                 }
-                delay(interval * 1000L)  // Wait for the specified interval (converted to milliseconds)
+
+                delay(task.common.nextLaunch() * 1000L)
             }
         }
     }
+}
+
+fun stopProcesses() {
+    Napier.d { "Stop the cron procceses" }
+    parentJob?.cancel("Cancel by user")
+    parentJob = null
 }
 
 fun runSingleProcess(process: CronProcess, result: (ProccessResult) -> Unit = {}) = GlobalScope.launch {
@@ -32,6 +44,6 @@ fun runSingleProcess(process: CronProcess, result: (ProccessResult) -> Unit = {}
     }
 }
 
-fun function(){
+fun function() {
     Napier.d { "Procces N running at: ${currentNanoTime()}" }
 }

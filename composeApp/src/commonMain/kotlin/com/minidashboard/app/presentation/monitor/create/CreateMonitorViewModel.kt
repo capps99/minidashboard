@@ -3,7 +3,7 @@ package com.minidashboard.app.presentation.monitor.create
 import androidx.lifecycle.ViewModel
 import com.minidashboard.app.data.models.CronProcess
 import com.minidashboard.app.domain.app.CronUseCase
-import com.minidashboard.app.domain.app.runProcesses
+import com.minidashboard.app.domain.app.startProcesses
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -35,9 +35,9 @@ class CreateMonitorViewModel(
     private fun create(action: CreateMonitorAction.Create) {
         Napier.d { "Monitor with $action" }
         useCase.insert(action.process)
-        runProcesses(
+        startProcesses(
             listOf(
-                action.process to 10
+                action.process
             )
         )
     }

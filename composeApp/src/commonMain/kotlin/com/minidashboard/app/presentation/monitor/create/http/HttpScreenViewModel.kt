@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.minidashboard.app.data.models.CronProcess
 import com.minidashboard.app.data.models.ProccessResult
 import com.minidashboard.app.data.models.SetupConfig
+import com.minidashboard.app.data.models.toJson
 import com.minidashboard.app.domain.app.runSingleProcess
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,6 +37,8 @@ class HttpScreenViewModel : ViewModel(){
     private fun test(action: TestMonitorAction.Test) {
         Napier.d { "Monitor test with $action" }
         state.value = HttpScreenState.Loading
+
+        Napier.d { action.process.toJson() }
         runSingleProcess(action.process){ result ->
             state.value = HttpScreenState.Data(result)
         }

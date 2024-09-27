@@ -4,21 +4,27 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.minidashboard.app.data.models.CronProcess
 import com.minidashboard.app.domain.app.CronUseCase
+import com.minidashboard.app.domain.app.startProcesses
+import com.minidashboard.app.domain.app.stopProcesses
+import com.minidashboard.db.cron.Cron
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toCollection
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 sealed interface MonitorState {
     data object Initial: MonitorState
     data class Data(
-        val attempt: Int = 0,
         val crons: List<CronProcess> = emptyList()
     ): MonitorState
 }
 sealed interface MonitorActions {
     data object Load: MonitorActions
+    data object Start: MonitorActions
+    data object Stop: MonitorActions
 }
 
 enum class Status {
@@ -36,25 +42,42 @@ class MonitorViewModel(
     fun processAction(action: MonitorActions){
         when(action){
             MonitorActions.Load -> load()
+            MonitorActions.Start -> start()
+            MonitorActions.Stop -> stop()
         }
     }
 
     private fun load(){
         Napier.d { "start load" }
-        val crons = cronUseCase.list()
-        val data = MonitorState.Data(
-            attempt = crons.size,
-            crons = cronList,
-        )
-        state.value = data
+        viewModelScope.launch {
+            /*val crons = cronUseCase.list().collect {
+                Napier.d { "Cron inserted: " }
+            }*/
 
+            val data = MonitorState.Data(
+                crons = cronUseCase.list()
+            )
+            state.value = data
+
+        }
         // generateRandomStatuses()
     }
 
-    private fun create(){
-        Napier.d { "Launch create note" }
+    private fun start(){
+        Napier.d { "Start" }
+        val state = state.value as? MonitorState.Data
+
+        state?.let{
+            startProcesses(
+                state.crons
+            )
+        }
     }
 
+    private fun stop(){
+        Napier.d { "Stop" }
+        stopProcesses()
+    }
 
     // Function to generate a random list of statuses
     private fun generateRandomStatusList(): List<Status> {
