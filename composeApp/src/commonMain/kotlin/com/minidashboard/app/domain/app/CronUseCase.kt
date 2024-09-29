@@ -18,7 +18,7 @@ class CronUseCase(
         val string = process.toJson()
         Napier.d { "string: $string" }
         dao.insert(
-            uuid = Random.nextInt(0, 100).toString(),
+            uuid = process.common.uuid,
             setup = process.toJson(),
             active = true
         )

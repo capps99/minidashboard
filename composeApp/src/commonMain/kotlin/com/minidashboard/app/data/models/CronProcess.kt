@@ -1,5 +1,6 @@
 package com.minidashboard.app.data.models
 
+import io.github.aakira.napier.Napier
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -8,18 +9,22 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import kotlin.random.Random
 
 // Define a sealed interface for cron processes
 @Serializable
 sealed interface CronProcess {
     val common: CronCommmon
     val setup: SetupConfig
+    val rules: List<Rule>
 
     suspend fun execute(result: (ProccessResult) -> Unit)
+    fun validate(): Boolean
 }
 
 @Serializable
 data class CronCommmon(
+    val uuid: String = Random.nextInt(1, 99999).toString(),
     val title: String,
     val description: String,
     val active: Boolean,
@@ -48,6 +53,23 @@ data class PythonSetupConfig(val scriptPath: String, val args: List<String> = em
 @SerialName("JVMSetup")
 data class JVMSetupConfig(val scriptPath: String, val args: List<String> = emptyList()) : SetupConfig
 
+@Serializable
+sealed interface Rule {
+    fun isValid(result: ProccessResult): Boolean
+}
+
+@Serializable
+@SerialName("HttpRuleMatch")
+data class HttpCodeRule(
+    val expected: Int,
+): Rule {
+    override fun isValid(result: ProccessResult): Boolean {
+        return when(result){
+           is HttpResult -> result.code == expected
+        }
+    }
+}
+
 
 // Implement different cron processes with specific configurations
 @Serializable
@@ -55,31 +77,60 @@ data class JVMSetupConfig(val scriptPath: String, val args: List<String> = empty
 data class HttpCronProcess(
     override val common: CronCommmon,
     override val setup: HttpSetupConfig,
+    override val rules: List<Rule>
 ) : CronProcess {
+
+    private var result: ProccessResult ? = null
+
     override suspend fun execute(result: (ProccessResult) -> Unit) {
-        println("Executing HTTP request to ${setup.url}")
+        Napier.d { "Launching proccess ${common.uuid}" }
+        Napier.d { "Executing HTTP request to ${setup.url}" }
         // Implement the HTTP logic here (e.g., using Ktor or OkHttp)
-        val client = HttpClient()
+        val client = HttpClient(){
+            engine {
+            }
+        }
         val response = client.get(setup.url)
         val content = response.bodyAsText()
 
-        result(
-            HttpResult(
-                code = response.status.value,
-                message = content
-            )
-        )
+        HttpResult(
+            proccess = this,
+            code = response.status.value,
+            message = content
+        ).also{
+            this.result = it
+            result(it)
+        }
     }
 
+    override fun validate(): Boolean {
+        Napier.d { "in validate()" }
+        val proccessResult = result ?: run {
+            Napier.w { "Result is null" }
+            return false
+        }
+
+        rules.forEach { rule ->
+            Napier.d { "validating: $rule with: ${rule.isValid(proccessResult)}" }
+            if(!rule.isValid(proccessResult)) return false
+        }
+
+        return true
+    }
 }
 
 @Serializable
 @SerialName("WebSocketCronProcess")
 data class WebSocketCronProcess(
     override val common: CronCommmon,
-    override val setup: WebSocketSetupConfig
+    override val setup: WebSocketSetupConfig,
+    override val rules: List<Rule>,
 ) : CronProcess {
     override suspend fun execute(result: (ProccessResult) -> Unit) {
+        TODO("Not yet implemented")
+    }
+
+    override fun validate(): Boolean {
         TODO("Not yet implemented")
     }
 }
@@ -88,9 +139,14 @@ data class WebSocketCronProcess(
 @SerialName("PythonCronProcess")
 data class PythonCronProcess(
     override val common: CronCommmon,
-    override val setup: PythonSetupConfig
+    override val setup: PythonSetupConfig,
+    override val rules: List<Rule>,
 ) : CronProcess {
     override suspend fun execute(result: (ProccessResult) -> Unit) {
+        TODO("Not yet implemented")
+    }
+
+    override fun validate(): Boolean {
         TODO("Not yet implemented")
     }
 }
@@ -99,9 +155,14 @@ data class PythonCronProcess(
 @SerialName("JVMCronProcess")
 data class JVMCronProcess(
     override val common: CronCommmon,
-    override val setup: PythonSetupConfig
+    override val setup: PythonSetupConfig,
+    override val rules: List<Rule>,
 ) : CronProcess {
     override suspend fun execute(result: (ProccessResult) -> Unit) {
+        TODO("Not yet implemented")
+    }
+
+    override fun validate(): Boolean {
         TODO("Not yet implemented")
     }
 }

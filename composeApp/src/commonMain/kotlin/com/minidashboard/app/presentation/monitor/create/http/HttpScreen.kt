@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import com.minidashboard.app.data.models.*
 import com.minidashboard.app.presentation.widgets.ExpandableColumn
 import com.minidashboard.app.presentation.widgets.HelpIcon
+import io.github.aakira.napier.Napier
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -18,8 +19,9 @@ fun HttpScreen(
 ) {
     val viewModel = koinViewModel<HttpScreenViewModel>()
     val state by viewModel.state.collectAsState()
+    var showDialog by remember { mutableStateOf(false) }
 
-    when(state) {
+    when (state) {
         HttpScreenState.Loading -> {
             Box(
                 contentAlignment = Alignment.Center,
@@ -29,6 +31,7 @@ fun HttpScreen(
                 CircularProgressIndicator()
             }
         }
+
         else -> {}
     }
 
@@ -40,10 +43,35 @@ fun HttpScreen(
     when (val s = state) {
         is HttpScreenState.Data -> {
             when (val result = s.result) {
-                is HttpResult -> HttpResultContainer(result)
+                is HttpResult -> {
+                    HttpResultContainer(result)
+                }
             }
         }
-        else -> {}
+
+        is HttpScreenState.Messages -> {
+            AlertDialog(
+                onDismissRequest = {
+                    viewModel.processAction(TestMonitorAction.hideError)
+                }, // Close the dialog when clicked outside or back pressed
+                title = {
+                    Text(text = s.title)
+                },
+                text = {
+                    Text(text = s.message)
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.processAction(TestMonitorAction.hideError)
+                    }) {
+                        Text("OK")
+                    }
+                }
+            )
+        }
+
+        HttpScreenState.Initial -> {}
+        HttpScreenState.Loading -> {}
     }
 }
 
@@ -62,9 +90,9 @@ fun HttpScreenContent(
     // Validate form fields to enable submit button
     submitEnabled = title.isNotEmpty() && url.isNotEmpty()
 
-    var command by remember { mutableStateOf("* * * * *") }
+    val command by remember { mutableStateOf("* * * * *") }
 
-    var ruleCode by remember { mutableStateOf("") }
+    var ruleCode by remember { mutableStateOf("200") }
 
     Box {
         Column {
@@ -94,14 +122,14 @@ fun HttpScreenContent(
 
             ExpandableColumn(
                 title = "Rules"
-            ){
+            ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text("HTTP response = ")
                     TextField(
                         value = ruleCode,
-                        onValueChange = { ruleCode = it},
+                        onValueChange = { ruleCode = it },
                     )
                     HelpIcon(
                         title = "Response Code",
@@ -127,6 +155,9 @@ fun HttpScreenContent(
                                     ),
                                     setup = HttpSetupConfig(
                                         url = url
+                                    ),
+                                    rules = viewModel.createRules(
+                                        httpMatchCode = ruleCode
                                     )
                                 )
                             )
@@ -149,6 +180,9 @@ fun HttpScreenContent(
                                 ),
                                 setup = HttpSetupConfig(
                                     url = url
+                                ),
+                                rules = viewModel.createRules(
+                                    httpMatchCode = ruleCode
                                 )
                             )
                         )

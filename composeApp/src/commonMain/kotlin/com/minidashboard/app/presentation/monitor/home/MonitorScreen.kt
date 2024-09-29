@@ -1,5 +1,6 @@
 package com.minidashboard.app.presentation.monitor.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -58,6 +59,8 @@ fun DataContent(
     val listState = rememberLazyListState()
     var isPlaying by remember { mutableStateOf(false) }
 
+    val list = data.crons.values.toList()
+
     // A Box to overlay the LazyColumn with a vertical scroll indicator
     Box(modifier = Modifier.fillMaxSize()) {
         // The LazyColumn displaying the list of items
@@ -65,9 +68,8 @@ fun DataContent(
             modifier = Modifier.fillMaxSize(),
             state = listState
         ) {
-            items(data.crons) { item ->
+            items(list) { item ->
                 ListItemView(item)
-                
             }
         }
         FloatButton(
@@ -92,7 +94,9 @@ fun DataContent(
 }
 
 @Composable
-fun ListItemView(item: CronProcess) {
+fun ListItemView(item: CronItem) {
+    val cron = item.cron
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -106,7 +110,7 @@ fun ListItemView(item: CronProcess) {
         ) {
             // Title
             Text(
-                text = item.common.title,
+                text = cron.common.title,
                 style = MaterialTheme.typography.body1,
                 color = Color.Black
             )
@@ -114,7 +118,7 @@ fun ListItemView(item: CronProcess) {
             // Description
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = item.common.description,
+                text = cron.common.description,
                 style = MaterialTheme.typography.body2,
                 color = Color.Gray
             )
@@ -129,7 +133,7 @@ fun ListItemView(item: CronProcess) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 // Iterate over each status and create a colored box
-                /*item.statuses.forEach { status ->
+                item.statuses.forEach { status ->
                     Box(
                         modifier = Modifier
                             .weight(1f)  // Equal weight for each box
@@ -143,7 +147,7 @@ fun ListItemView(item: CronProcess) {
                             )
                     )
                     Spacer(modifier = Modifier.width(4.dp)) // Add spacing between boxes
-                }*/
+                }
             }
         }
     }

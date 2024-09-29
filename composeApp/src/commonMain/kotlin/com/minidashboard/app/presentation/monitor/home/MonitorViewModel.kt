@@ -3,28 +3,36 @@ package com.minidashboard.app.presentation.monitor.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.minidashboard.app.data.models.CronProcess
+import com.minidashboard.app.data.models.HttpResult
+import com.minidashboard.app.data.models.ProccessResult
 import com.minidashboard.app.domain.app.CronUseCase
 import com.minidashboard.app.domain.app.startProcesses
 import com.minidashboard.app.domain.app.stopProcesses
-import com.minidashboard.db.cron.Cron
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.toCollection
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlin.random.Random
+import com.minidashboard.app.domain.app.Result
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+
+
+data class CronItem(
+    val cron: CronProcess,
+    val statuses: List<Status>
+)
 
 sealed interface MonitorState {
-    data object Initial: MonitorState
+    data object Initial : MonitorState
     data class Data(
-        val crons: List<CronProcess> = emptyList()
-    ): MonitorState
+        val crons: Map<String, CronItem> = emptyMap()
+    ) : MonitorState
 }
+
 sealed interface MonitorActions {
-    data object Load: MonitorActions
-    data object Start: MonitorActions
-    data object Stop: MonitorActions
+    data object Load : MonitorActions
+    data object Start : MonitorActions
+    data object Stop : MonitorActions
 }
 
 enum class Status {
@@ -33,21 +41,22 @@ enum class Status {
 
 class MonitorViewModel(
     private val cronUseCase: CronUseCase,
-) : ViewModel(){
+) : ViewModel() {
 
     val state = MutableStateFlow<MonitorState>(MonitorState.Initial)
 
-    private val cronList = listOf<CronProcess>()
+    private val mutex = Mutex()
 
-    fun processAction(action: MonitorActions){
-        when(action){
+
+    fun processAction(action: MonitorActions) {
+        when (action) {
             MonitorActions.Load -> load()
             MonitorActions.Start -> start()
             MonitorActions.Stop -> stop()
         }
     }
 
-    private fun load(){
+    private fun load() {
         Napier.d { "start load" }
         viewModelScope.launch {
             /*val crons = cronUseCase.list().collect {
@@ -55,67 +64,81 @@ class MonitorViewModel(
             }*/
 
             val data = MonitorState.Data(
-                crons = cronUseCase.list()
+                crons = cronUseCase.list().map { cron ->
+                    cron.common.uuid to CronItem(
+                        cron = cron,
+                        statuses = emptyList(),
+                    )
+                }.toMap()
             )
-            state.value = data
 
+            state.value = data
         }
         // generateRandomStatuses()
     }
 
-    private fun start(){
+    private fun start() {
         Napier.d { "Start" }
         val state = state.value as? MonitorState.Data
 
-        state?.let{
-            startProcesses(
-                state.crons
-            )
+        state?.let {
+            val list = state.crons.values.map { it.cron }
+            startProcesses(list) {
+                viewModelScope.launch {
+                    collect(it)
+                }
+            }
         }
     }
 
-    private fun stop(){
+    private fun stop() {
         Napier.d { "Stop" }
         stopProcesses()
     }
 
-    // Function to generate a random list of statuses
-    private fun generateRandomStatusList(): List<Status> {
-        val randomSize = 1 //Random.nextInt(1, 4) // Generate between 1 to 3 statuses
-        return List(randomSize) {
-            when (Random.nextInt(3)) {
-                0 -> Status.CORRECT
-                1 -> Status.WARNING
-                else -> Status.ERROR
+    private suspend fun collect(result: Result) {
+        mutex.withLock {
+            val (processResult, result) = result
+            Napier.d { "Collecting new procces result" }
+            Napier.d { "Procces: $processResult with result: $result" }
+
+            val state = state.value
+            when (state) {
+                is MonitorState.Data -> {
+                    val data = updateDataSource(
+                        input = state.crons,
+                        process = processResult,
+                    )
+
+                    Napier.d { "Updating state" }
+                    this.state.value = state.copy(
+                        crons = data
+                    )
+                }
+
+                MonitorState.Initial -> return
             }
         }
     }
 
-/*     private fun generateRandomStatuses() {
-        // Launch a coroutine in the ViewModelScope
-        viewModelScope.launch {
-            while (true) {
-                // Update the statuses of the list items every 2 seconds
-                delay(1000)
-
-                when(val s = state.value){
-                    is MonitorState.Data -> {
-                        val index = Random.nextInt(0, cronList.size)
-
-                        cronList[index] = cronList[index]
-                            .copy(
-                                statuses = cronList[index].statuses + generateRandomStatusList()
-                            )
-
-                        state.value = s.copy(
-                            crons = cronList,
-                            attempt = s.attempt + 1
-                        )
-                    }
-                    MonitorState.Initial -> {}
+    private fun updateDataSource(input: Map<String, CronItem>, process: ProccessResult): MutableMap<String, CronItem> {
+        val resp = input.toMutableMap()
+        when (val process = process) {
+            is HttpResult -> {
+                val cache = resp[process.uuid] ?: run {
+                    Napier.d { "Cron data not found with id: ${process.uuid}" }
+                    return resp
                 }
+
+                resp[process.uuid] = cache.copy(
+                    statuses = (cache.statuses + when (process.proccess.validate()) {
+                        true -> Status.CORRECT
+                        false -> Status.ERROR
+                    }).take(10)
+                )
             }
         }
-    }  */
 
+        return resp
+    }
 }
