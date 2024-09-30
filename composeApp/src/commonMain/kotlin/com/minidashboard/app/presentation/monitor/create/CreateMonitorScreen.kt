@@ -3,19 +3,19 @@ package com.minidashboard.app.presentation.monitor.create
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.Text
-import androidx.compose.material.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.minidashboard.app.data.models.CommandSetupConfig
 import com.minidashboard.app.data.models.HttpSetupConfig
-import com.minidashboard.app.data.models.JVMSetupConfig
 import com.minidashboard.app.data.models.PythonSetupConfig
 import com.minidashboard.app.data.models.WebSocketSetupConfig
+import com.minidashboard.app.presentation.monitor.create.command.CommandScreen
 import com.minidashboard.app.presentation.monitor.create.http.HttpScreen
+import com.minidashboard.app.presentation.widgets.DialogListWidget
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -41,7 +41,7 @@ fun CreateMonitorScreen(
             CreateMonitorState.Initial -> {}
         }
 
-        // Submit Button
+        // Type Button
         Row (
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(),
@@ -64,52 +64,27 @@ fun CreateMonitorScreen(
                     )
                 }
             }
+            "Command" -> {
+                CommandScreen {
+                    viewModel.processAction(
+                        action = CreateMonitorAction.Create(it)
+                    )
+                }
+            }
         }
 
-        DialogListExample(showTypeDialog) { (label, type) ->
+        DialogListWidget(
+            options = listOfNotNull(
+                "Select an option" to "",
+                "Http" to HttpSetupConfig::class.simpleName,
+                "WebSocket" to WebSocketSetupConfig::class.simpleName,
+                "Python" to PythonSetupConfig::class.simpleName,
+                "Command" to CommandSetupConfig::class.simpleName,
+            ),
+            isShowing= showTypeDialog
+        ) { (label, type) ->
             typeSelected = Pair(label, type)
             showTypeDialog = false
-        }
-    }
-}
-
-@Composable
-fun DialogListExample(
-    isShowing: Boolean,
-    onClosed: (Pair<String, String?>) -> Unit
-) {
-    val options = listOfNotNull(
-        "Select an option" to "",
-        "Http" to HttpSetupConfig::class.simpleName,
-        "WebSocket" to WebSocketSetupConfig::class.simpleName,
-        "Python" to PythonSetupConfig::class.simpleName,
-        "JVM" to JVMSetupConfig::class.simpleName,
-    )
-    var selectedOption by remember { mutableStateOf(options.first()) }
-
-    Column {
-        if (isShowing) {
-            AlertDialog(
-                onDismissRequest = { onClosed(selectedOption) },
-                title = { Text(text = "Choose an Option") },
-                text = {
-                    Column {
-                        options.forEach { option ->
-                            TextButton(onClick = {
-                                selectedOption = option
-                                onClosed(selectedOption)
-                            }) {
-                                Text(
-                                    text = option.first,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                )
-                            }
-                        }
-                    }
-                },
-                confirmButton = {}
-            )
         }
     }
 }

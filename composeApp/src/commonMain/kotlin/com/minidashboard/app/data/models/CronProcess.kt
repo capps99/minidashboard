@@ -1,5 +1,6 @@
 package com.minidashboard.app.data.models
 
+import com.minidashboard.app.domain.command.Command
 import io.github.aakira.napier.Napier
 import io.ktor.client.*
 import io.ktor.client.request.*
@@ -15,6 +16,7 @@ import kotlin.random.Random
 @Serializable
 sealed interface CronProcess {
     val common: CronCommmon
+    val schedule: CronSchedule
     val setup: SetupConfig
     val rules: List<Rule>
 
@@ -23,15 +25,40 @@ sealed interface CronProcess {
 }
 
 @Serializable
+data class CronSchedule(
+    val time: Int,
+    val interval: String
+){
+
+    companion object {
+        const val MINUTES = "Minutes"
+        const val HOURS = "Hours"
+        const val DAYS = "Days"
+        const val WEEK = "Week"
+    }
+
+    fun nextLaunch(): Long {
+        fun minutesToMillis(minutes: Long): Long = minutes * 60 * 1000
+        fun hoursToMillis(hours: Long): Long = hours * 60 * 60 * 1000
+        fun daysToMillis(days: Long): Long = days * 24 * 60 * 60 * 1000
+
+        return when(interval){
+            MINUTES -> minutesToMillis(time.toLong())
+            HOURS -> hoursToMillis(time.toLong())
+            DAYS -> daysToMillis(time.toLong())
+            else -> minutesToMillis(time.toLong())
+        }
+    }
+
+}
+
+@Serializable
 data class CronCommmon(
     val uuid: String = Random.nextInt(1, 99999).toString(),
     val title: String,
     val description: String,
     val active: Boolean,
-    val command: String,
-){
-    fun nextLaunch(): Int = 1  * 60 // minutos
-}
+)
 
 // Represent different configurations for each process type
 @Serializable
@@ -50,22 +77,26 @@ data class WebSocketSetupConfig(val endpoint: String, val protocols: List<String
 data class PythonSetupConfig(val scriptPath: String, val args: List<String> = emptyList()) : SetupConfig
 
 @Serializable
-@SerialName("JVMSetup")
-data class JVMSetupConfig(val scriptPath: String, val args: List<String> = emptyList()) : SetupConfig
+@SerialName("CommandSetup")
+data class CommandSetupConfig(val command: String) : SetupConfig
 
 @Serializable
 sealed interface Rule {
     fun isValid(result: ProccessResult): Boolean
 }
 
+/**
+ * Matches the result with the expected int
+ */
 @Serializable
-@SerialName("HttpRuleMatch")
-data class HttpCodeRule(
+@SerialName("MatchIntRule")
+data class MatchIntRule(
     val expected: Int,
 ): Rule {
     override fun isValid(result: ProccessResult): Boolean {
         return when(result){
-           is HttpResult -> result.code == expected
+            is HttpResult -> result.code == expected
+            is CommandResult -> result.code == expected
         }
     }
 }
@@ -76,6 +107,7 @@ data class HttpCodeRule(
 @SerialName("HttpCronProcess")
 data class HttpCronProcess(
     override val common: CronCommmon,
+    override val schedule: CronSchedule,
     override val setup: HttpSetupConfig,
     override val rules: List<Rule>
 ) : CronProcess {
@@ -123,6 +155,7 @@ data class HttpCronProcess(
 @SerialName("WebSocketCronProcess")
 data class WebSocketCronProcess(
     override val common: CronCommmon,
+    override val schedule: CronSchedule,
     override val setup: WebSocketSetupConfig,
     override val rules: List<Rule>,
 ) : CronProcess {
@@ -139,6 +172,7 @@ data class WebSocketCronProcess(
 @SerialName("PythonCronProcess")
 data class PythonCronProcess(
     override val common: CronCommmon,
+    override val schedule: CronSchedule,
     override val setup: PythonSetupConfig,
     override val rules: List<Rule>,
 ) : CronProcess {
@@ -152,18 +186,56 @@ data class PythonCronProcess(
 }
 
 @Serializable
-@SerialName("JVMCronProcess")
-data class JVMCronProcess(
+@SerialName("CommandCronProcess")
+data class CommandCronProcess(
     override val common: CronCommmon,
-    override val setup: PythonSetupConfig,
+    override val schedule: CronSchedule,
+    override val setup: CommandSetupConfig,
     override val rules: List<Rule>,
 ) : CronProcess {
+
+    private var result: ProccessResult ? = null
+
     override suspend fun execute(result: (ProccessResult) -> Unit) {
-        TODO("Not yet implemented")
+        //kotlinc Main.kt -include-runtime -d Main.jar
+        val commandString = setup.command
+
+        val command = Command()
+
+        command.execute(
+            command = commandString,
+            onResult = {
+                val (code, message) = it
+            }
+        )
+
+        command.execute(commandString){ (code, message) ->
+            Napier.d {"Command result with code: $code, message: $message"}
+            result(
+                CommandResult(
+                    proccess = this,
+                    code = code,
+                    message = message
+                ).also {
+                    this.result = it
+                }
+            )
+        }
     }
 
     override fun validate(): Boolean {
-        TODO("Not yet implemented")
+        Napier.d { "in command validate()" }
+        val proccessResult = result ?: run {
+            Napier.w { "Result is null" }
+            return false
+        }
+
+        rules.forEach { rule ->
+            Napier.d { "validating: $rule with: ${rule.isValid(proccessResult)}" }
+            if(!rule.isValid(proccessResult)) return false
+        }
+
+        return true
     }
 }
 

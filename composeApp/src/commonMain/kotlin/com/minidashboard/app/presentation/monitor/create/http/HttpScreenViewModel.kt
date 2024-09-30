@@ -70,7 +70,7 @@ class HttpScreenViewModel : ViewModel() {
 
         httpMatchCode?.toIntOrNull()?.let {
             rules.add(
-                HttpCodeRule(
+                MatchIntRule(
                     expected = it,
                 )
             )

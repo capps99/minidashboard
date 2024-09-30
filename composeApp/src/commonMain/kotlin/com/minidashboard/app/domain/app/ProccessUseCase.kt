@@ -37,7 +37,9 @@ fun startProcesses(processes: List<CronProcess>, result: (Result) -> Unit = {}) 
                                 }
                         }
                     }
-                    delay(task.common.nextLaunch() * 1000L)
+                    Napier.i { "Next task with uuid: ${task.common.uuid} schedule in: ${task.schedule}" }.also {
+                        delay(task.schedule.nextLaunch())
+                    }
                 }
             }
         }

@@ -1,28 +1,29 @@
-package com.minidashboard.app.presentation.monitor.create.http
+package com.minidashboard.app.presentation.monitor.create.command
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.dp
 import com.minidashboard.app.data.models.*
+import com.minidashboard.app.presentation.widgets.DialogListWidget
 import com.minidashboard.app.presentation.widgets.ExpandableColumn
 import com.minidashboard.app.presentation.widgets.HelpIcon
-import io.github.aakira.napier.Napier
 import org.koin.compose.viewmodel.koinViewModel
 
+
 @Composable
-fun HttpScreen(
+fun CommandScreen(
     modifier: Modifier = Modifier,
     onCreated: (CronProcess) -> Unit = {},
 ) {
-    val viewModel = koinViewModel<HttpScreenViewModel>()
+    val viewModel = koinViewModel<CommandScreenViewModel>()
     val state by viewModel.state.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
     when (state) {
-        HttpScreenState.Loading -> {
+        CommandScreenState.Loading -> {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
@@ -35,26 +36,17 @@ fun HttpScreen(
         else -> {}
     }
 
-    HttpScreenContent(
+    CommandScreenContent(
         modifier = modifier,
         onCreated = onCreated,
     )
 
     when (val s = state) {
-        is HttpScreenState.Data -> {
-            when (val result = s.result) {
-                is HttpResult -> {
-                    HttpResultContainer(result)
-                }
-
-                else -> {}
-            }
-        }
-
-        is HttpScreenState.Messages -> {
+        is CommandScreenState.Data -> {}
+        is CommandScreenState.Messages -> {
             AlertDialog(
                 onDismissRequest = {
-                    viewModel.processAction(TestMonitorAction.hideError)
+                    viewModel.processAction(CommandMonitorAction.hideError)
                 }, // Close the dialog when clicked outside or back pressed
                 title = {
                     Text(text = s.title)
@@ -64,7 +56,7 @@ fun HttpScreen(
                 },
                 confirmButton = {
                     TextButton(onClick = {
-                        viewModel.processAction(TestMonitorAction.hideError)
+                        viewModel.processAction(CommandMonitorAction.hideError)
                     }) {
                         Text("OK")
                     }
@@ -72,35 +64,35 @@ fun HttpScreen(
             )
         }
 
-        HttpScreenState.Initial -> {}
-        HttpScreenState.Loading -> {}
+        CommandScreenState.Initial, CommandScreenState.Loading -> {}
     }
 }
 
 @Composable
-fun HttpScreenContent(
+fun CommandScreenContent(
     onCreated: (CronProcess) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val viewModel = koinViewModel<HttpScreenViewModel>()
+    val viewModel = koinViewModel<CommandScreenViewModel>()
 
     // State variables for the form fields
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var url by remember { mutableStateOf("") }
+    var command by remember { mutableStateOf("") }
     var submitEnabled by remember { mutableStateOf(false) }
     // Validate form fields to enable submit button
-    submitEnabled = title.isNotEmpty() && url.isNotEmpty()
+    submitEnabled = title.isNotEmpty() && command.isNotEmpty()
 
     // show/hide dialog schedule
     var showScheduleTypeDialog by remember { mutableStateOf(false) }
     var showScheduleTypeSelected: Pair<String, String> by remember { mutableStateOf("Select a Time Interval" to "") }
     var scheduleTime by remember { mutableStateOf("") }
 
-    var ruleCode by remember { mutableStateOf("200") }
+    var ruleExitCode by remember { mutableStateOf("0") }
 
     Box {
         Column {
+            Text("Command Setup")
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
@@ -118,9 +110,9 @@ fun HttpScreenContent(
             )
 
             OutlinedTextField(
-                value = url,
-                onValueChange = { url = it },
-                label = { Text("URL") },
+                value = command,
+                onValueChange = { command = it },
+                label = { Text("Command") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -131,14 +123,19 @@ fun HttpScreenContent(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("HTTP response = ")
-                    TextField(
-                        value = ruleCode,
-                        onValueChange = { ruleCode = it },
+                    OutlinedTextField(
+                        value = ruleExitCode,
+                        onValueChange = { ruleExitCode = it },
+                        label = { Text("Exit code = ") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
                     )
                     HelpIcon(
-                        title = "Response Code",
-                        description = "Put the code here that you wwant to match.",
+                        title = "Exit code",
+                        description = """
+                        0 = Bash success return.
+                        -1 = Bash thrown an error.
+                        """.trimIndent(),
                     )
                 }
             }
@@ -169,7 +166,31 @@ fun HttpScreenContent(
                             Text(showScheduleTypeSelected.first)
                         }
                     }
+                    HelpIcon(
+                        title = "Exit code",
+                        description = """
+                        0 = Bash success return.
+                        -1 = Bash thrown an error.
+                        """.trimIndent(),
+                        modifier = Modifier.weight(0.10f, false)
+                    )
                 }
+            }
+
+            DialogListWidget(
+                options = listOfNotNull(
+                    "Select an option" to "",
+                    "Minutes" to CronSchedule.MINUTES,
+                    "Hours" to CronSchedule.HOURS,
+                    "Days" to CronSchedule.DAYS,
+                ),
+                isShowing= showScheduleTypeDialog
+            ) { (label, type) ->
+                // Validate not null
+                if(type.isNullOrEmpty()) return@DialogListWidget
+
+                showScheduleTypeSelected = Pair(label, type)
+                showScheduleTypeDialog = false
             }
 
             Row(
@@ -179,22 +200,22 @@ fun HttpScreenContent(
                 Button(
                     onClick = {
                         viewModel.processAction(
-                            TestMonitorAction.Test(
-                                HttpCronProcess(
+                            CommandMonitorAction.Test(
+                                CommandCronProcess(
                                     common = CronCommmon(
                                         title = title,
                                         description = description,
                                         active = true,
                                     ),
-                                    setup = HttpSetupConfig(
-                                        url = url
+                                    setup = CommandSetupConfig(
+                                        command = command
                                     ),
                                     schedule = CronSchedule(
                                         time = scheduleTime.toIntOrNull() ?: 0,
                                         interval = showScheduleTypeSelected.second
                                     ),
                                     rules = viewModel.createRules(
-                                        httpMatchCode = ruleCode
+                                        ruleExitCode = ruleExitCode
                                     ),
                                 )
                             )
@@ -208,22 +229,22 @@ fun HttpScreenContent(
                 Button(
                     onClick = {
                         onCreated(
-                            HttpCronProcess(
+                            CommandCronProcess(
                                 common = CronCommmon(
                                     title = title,
                                     description = description,
                                     active = true,
                                 ),
-                                setup = HttpSetupConfig(
-                                    url = url
+                                setup = CommandSetupConfig(
+                                    command = command
                                 ),
                                 schedule = CronSchedule(
                                     time = scheduleTime.toIntOrNull() ?: 0,
                                     interval = showScheduleTypeSelected.second
                                 ),
                                 rules = viewModel.createRules(
-                                    httpMatchCode = ruleCode
-                                ),
+                                    ruleExitCode = ruleExitCode
+                                )
                             )
                         )
                     },
@@ -236,8 +257,9 @@ fun HttpScreenContent(
     }
 }
 
+/*
 @Composable
-fun HttpResultContainer(result: HttpResult) {
+fun CommandResultContainer(result: HttpResult) {
     Column {
         Row {
             Text("Response Code:")
@@ -246,4 +268,4 @@ fun HttpResultContainer(result: HttpResult) {
         Text("Response:")
         Text(result.message)
     }
-}
+}*/

@@ -11,3 +11,12 @@ data class HttpResult(
 ): ProccessResult {
     override val uuid = proccess.common.uuid
 }
+
+
+data class CommandResult(
+    val proccess: CronProcess,
+    val code: Int,
+    val message: String
+): ProccessResult {
+    override val uuid = proccess.common.uuid
+}

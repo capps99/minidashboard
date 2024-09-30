@@ -2,6 +2,7 @@ package com.minidashboard.app.presentation.monitor.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.minidashboard.app.data.models.CommandResult
 import com.minidashboard.app.data.models.CronProcess
 import com.minidashboard.app.data.models.HttpResult
 import com.minidashboard.app.data.models.ProccessResult
@@ -124,7 +125,21 @@ class MonitorViewModel(
     private fun updateDataSource(input: Map<String, CronItem>, process: ProccessResult): MutableMap<String, CronItem> {
         val resp = input.toMutableMap()
         when (val process = process) {
+            // Fix this and comprees in a better emthod
             is HttpResult -> {
+                val cache = resp[process.uuid] ?: run {
+                    Napier.d { "Cron data not found with id: ${process.uuid}" }
+                    return resp
+                }
+
+                resp[process.uuid] = cache.copy(
+                    statuses = (cache.statuses + when (process.proccess.validate()) {
+                        true -> Status.CORRECT
+                        false -> Status.ERROR
+                    }).take(10)
+                )
+            }
+            is CommandResult -> {
                 val cache = resp[process.uuid] ?: run {
                     Napier.d { "Cron data not found with id: ${process.uuid}" }
                     return resp

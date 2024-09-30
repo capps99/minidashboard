@@ -14,6 +14,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun HelpIcon(
     title: String,
     description: String,
+    modifier: Modifier = Modifier,
 ) {
     // State to control the visibility of the dialog
     var showDialog by remember { mutableStateOf(false) }
@@ -23,7 +24,7 @@ fun HelpIcon(
         Icon(
             imageVector = Icons.Filled.Info, // Info icon from Material Icons
             contentDescription = "Help Icon",
-            modifier = Modifier.size(24.dp)
+            modifier = modifier.size(24.dp)
         )
     }
 
