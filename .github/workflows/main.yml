@@ -65,6 +65,9 @@ jobs:
 
       - name: Upload Distributable3
         run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app.pkg)" >> $GITHUB_OUTPUT
+        
+      - name: Upload Distributable4
+        run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app)" >> $GITHUB_OUTPUT
 
       #- name: Build Release bundle
       #  env:
