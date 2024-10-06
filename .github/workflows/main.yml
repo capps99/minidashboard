@@ -54,6 +54,9 @@ jobs:
       - name: Create Distributable
         run: ./gradlew composeApp:createDistributable --stacktrace
 
+      - name: List all files recursively
+        run: ls -d composeApp/build/compose/binaries/main/app
+
       - name: Upload Distributable
         run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/*.*)" >> $GITHUB_OUTPUT
 
