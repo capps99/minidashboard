@@ -128,8 +128,16 @@ android {
         }
     }
     buildTypes {
-        getByName("release") {
+        /*getByName("release") {
             isMinifyEnabled = false
+        }*/
+
+        release {
+
+        }
+
+        debug {
+            
         }
     }
     compileOptions {
@@ -149,7 +157,7 @@ compose.desktop {
         mainClass = "com.minidashboard.app.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Exe)
             packageName = "com.minidashboard.app"
             packageVersion = "1.0.0"
         }
