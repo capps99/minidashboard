@@ -57,18 +57,18 @@ jobs:
       - name: List all files recursively
         run: ls composeApp/build/compose/binaries/main/app
 
-      - name: Upload Distributable
-        run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app.jar)" >> $GITHUB_OUTPUT
+      #- name: Upload Distributable
+      #  run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app.jar)" >> $GITHUB_OUTPUT
 
-      - name: Upload Distributable2
-        run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app.deb)" >> $GITHUB_OUTPUT
+      #- name: Upload Distributable2
+      #  run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app.deb)" >> $GITHUB_OUTPUT
 
-      - name: Upload Distributable3
-        run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app.pkg)" >> $GITHUB_OUTPUT
+      #- name: Upload Distributable3
+      #  run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app.pkg)" >> $GITHUB_OUTPUT
         
       - name: Upload Distributable4
         id: releaseDistributable
-        run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app/lib)" >> $GITHUB_OUTPUT
+        run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app)" >> $GITHUB_OUTPUT
 
       - name: Zip Files
         uses: papeloto/action-zip@v1
