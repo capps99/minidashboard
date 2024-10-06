@@ -51,6 +51,10 @@ jobs:
         #run: ./gradlew assembleRelease --stacktrace
         run: ./gradlew assemble --stacktrace
 
+      - name: Create Distributable
+        run: ./gradlew composeApp:createDistributable --stacktrace
+        run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/*.*)" >> $GITHUB_OUTPUT
+
       #- name: Build Release bundle
       #  env:
       #    RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
