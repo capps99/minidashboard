@@ -6,10 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
@@ -20,6 +17,11 @@ import androidx.compose.ui.unit.dp
 import com.minidashboard.app.data.models.CronProcess
 import com.minidashboard.app.presentation.widgets.FloatButton
 import io.github.aakira.napier.Napier
+import minidashboard.composeapp.generated.resources.Res
+import minidashboard.composeapp.generated.resources.pause
+import minidashboard.composeapp.generated.resources.play
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.vectorResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -64,8 +66,8 @@ fun DataContent(
     onStatusProccess: (Boolean) -> Unit = {},
     onEditProccess: (CronItem) -> Unit = {},
 ) {
+    val viewModel = koinViewModel<MonitorViewModel>()
     val listState = rememberLazyListState()
-    var isPlaying by remember { mutableStateOf(false) }
 
     val list = data.crons.values.toList()
 
@@ -84,18 +86,20 @@ fun DataContent(
         }
         FloatButton(
             icon = Icons.Default.Add,
+            description = "add",
             onTap = { onCreateMonitor() },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
         )
         FloatButton(
-            icon = when (isPlaying) {
-                true -> Icons.Default.Build
-                false -> Icons.Default.PlayArrow
+            icon = when (data.isProcessRuning) {
+                true -> painterResource(resource = Res.drawable.pause)
+                false -> painterResource(resource = Res.drawable.play)
             },
+            description = "play/stop",
             onTap = {
-                isPlaying = !isPlaying
-                onStatusProccess(isPlaying)
+                val running = !data.isProcessRuning
+                onStatusProccess(running)
             },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -143,13 +147,17 @@ fun ListItemView(
                         color = Color.Gray
                     )
                 }
-                Button(
+
+                IconButton(
                     onClick = {
                         onEdit(item)
                     },
-                    modifier = Modifier.align(Alignment.CenterVertically) // Align vertically in the center
-                ) {
-                    Text("Edit")
+                ){
+                    Icon(
+                        imageVector = Icons.Default.Build,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp) // Set size of the icon
+                    )
                 }
             }
 

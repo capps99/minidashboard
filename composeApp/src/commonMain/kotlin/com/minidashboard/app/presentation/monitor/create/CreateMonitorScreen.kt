@@ -109,6 +109,7 @@ fun CreateMonitorScreen(
         uuid?.let {
             FloatButton(
                 icon = Icons.Default.Delete,
+                description = "Delete",
                 onTap = {
                     viewModel.processAction(
                         CreateMonitorAction.Delete(it)

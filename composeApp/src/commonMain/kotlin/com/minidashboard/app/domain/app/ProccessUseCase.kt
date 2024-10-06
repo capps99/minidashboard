@@ -11,6 +11,10 @@ private var parentJob: CompletableJob? = null
 
 typealias Result = Pair<ProccessResult, Boolean>
 
+fun isProcessesRunning(): Boolean {
+    return parentJob?.isActive ?: false
+}
+
 // Function to run multiple processes with different times.
 fun startProcesses(processes: List<CronProcess>, result: (Result) -> Unit = {}) {
     parentJob = Job()

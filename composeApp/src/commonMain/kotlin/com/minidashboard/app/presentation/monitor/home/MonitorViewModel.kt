@@ -6,14 +6,11 @@ import com.minidashboard.app.data.models.CommandResult
 import com.minidashboard.app.data.models.CronProcess
 import com.minidashboard.app.data.models.HttpResult
 import com.minidashboard.app.data.models.ProccessResult
-import com.minidashboard.app.domain.app.CronUseCase
-import com.minidashboard.app.domain.app.startProcesses
-import com.minidashboard.app.domain.app.stopProcesses
+import com.minidashboard.app.domain.app.*
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlin.random.Random
-import com.minidashboard.app.domain.app.Result
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -26,7 +23,8 @@ data class CronItem(
 sealed interface MonitorState {
     data object Initial : MonitorState
     data class Data(
-        val crons: Map<String, CronItem> = emptyMap()
+        val crons: Map<String, CronItem> = emptyMap(),
+        val isProcessRuning: Boolean = false,
     ) : MonitorState
 }
 
@@ -51,7 +49,6 @@ class MonitorViewModel(
 
     private val mutex = Mutex()
 
-
     fun processAction(action: MonitorActions) {
         when (action) {
             MonitorActions.Load -> load()
@@ -74,7 +71,8 @@ class MonitorViewModel(
                         cron = cron,
                         statuses = emptyList(),
                     )
-                }.toMap()
+                }.toMap(),
+                isProcessRuning = isProcessesRunning(),
             )
 
             state.value = data
@@ -103,6 +101,11 @@ class MonitorViewModel(
     private fun stop() {
         Napier.d { "Stop" }
         stopProcesses()
+
+        val state = state.value as? MonitorState.Data ?: return
+        this.state.value = state.copy(
+            isProcessRuning = false,
+        )
     }
 
     private suspend fun collect(result: Result) {
@@ -121,7 +124,8 @@ class MonitorViewModel(
 
                     Napier.d { "Updating state" }
                     this.state.value = state.copy(
-                        crons = data
+                        crons = data,
+                        isProcessRuning = true,
                     )
                 }
 
