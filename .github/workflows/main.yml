@@ -51,8 +51,11 @@ jobs:
         #run: ./gradlew assembleRelease --stacktrace
         run: ./gradlew assemble --stacktrace
 
+      #- name: Create Distributable
+      #  run: ./gradlew composeApp:createDistributable --stacktrace
+      
       - name: Create Distributable
-        run: ./gradlew composeApp:createDistributable --stacktrace
+        run: ./gradlew composeApp:packageDeb --stacktrace
 
       - name: List all files recursively
         run: ls composeApp/build/compose/binaries/main/app
