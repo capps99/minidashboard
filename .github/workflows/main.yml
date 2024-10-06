@@ -70,18 +70,28 @@ jobs:
       #  run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app.pkg)" >> $GITHUB_OUTPUT
         
       - name: Upload Distributable4
+       #/home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb/com.minidashboard.app_1.0.0-1_amd64.deb
         id: releaseDistributable1
-        run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app.deb)" >> $GITHUB_OUTPUT
+        run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/*.deb)" >> $GITHUB_OUTPUT
 
-      - name: Upload Distributable5
-        id: releaseDistributable2
-        run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app.rpm)" >> $GITHUB_OUTPUT
+     # Step2: Create a ZIP file of the desired folder or files
+      - name: Zip files
+        run: zip -r release.zip composeApp/build/compose/binaries/main/app/
 
-      - name: Zip Files
-        uses: papeloto/action-zip@v1
+      # Step 3: Upload the ZIP as a release asset
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
         with:
-          files: ${{ steps.releaseDistributable.outputs.distributable2 }}
-          dest: ${{ steps.releaseApk.outputs.distributable2 }}.zip
+          upload_url: ${{ github.event.release.upload_url }} # URL of the release to upload the asset to
+          asset_path: ./release.zip                       # Path to the ZIP file to upload
+          asset_name: release.zip                         # Name of the asset in the release
+          asset_content_type: application/zip                # Content type of the file
+        
+      #- name: Zip Files
+      #  uses: papeloto/action-zip@v1
+      #  with:
+      #    files: ${{ steps.releaseDistributable1.outputs.distributable }}
+      #    dest: ${{ steps.releaseApk.outputs.distributable2 }}.zip
 
       #- name: Build Release bundle
       #  env:
