@@ -58,7 +58,7 @@ jobs:
         run: ls composeApp/build/compose/binaries/main/app
 
       - name: Upload Distributable
-        run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/*.*)" >> $GITHUB_OUTPUT
+        run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app)" >> $GITHUB_OUTPUT
 
       #- name: Build Release bundle
       #  env:
