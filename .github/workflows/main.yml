@@ -50,45 +50,39 @@ jobs:
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         #run: ./gradlew assembleRelease --stacktrace
         run: ./gradlew assemble --stacktrace
-
-      #- name: Create Distributable
-      #  run: ./gradlew composeApp:createDistributable --stacktrace
       
       - name: Create Distributable
         run: ./gradlew composeApp:packageDeb --stacktrace
-
-      #- name: Upload Distributable
-      #  run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app.jar)" >> $GITHUB_OUTPUT
-
-      #- name: Upload Distributable2
-      #  run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app.deb)" >> $GITHUB_OUTPUT
-
-      #- name: Upload Distributable3
-      #  run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app.pkg)" >> $GITHUB_OUTPUT
         
       - name: Upload Distributable4
        #/home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb/com.minidashboard.app_1.0.0-1_amd64.deb
         id: releaseDistributable
         run: echo "distributable=$(find /home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb/*.deb)" >> $GITHUB_OUTPUT
 
-     # Step2: Create a ZIP file of the desired folder or files
-      #- name: Zip files
-      #  run: zip -r release.zip /home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb/
-
-      # Step 3: Upload the ZIP as a release asset
-      #- name: Upload Release Asset
-      #  uses: actions/upload-release-asset@v1
-      #  with:
-      #    upload_url: ${{ github.event.release.upload_url }} # URL of the release to upload the asset to
-      #    asset_path: ./release.zip                       # Path to the ZIP file to upload
-      #    asset_name: release.zip                         # Name of the asset in the release
-      #    asset_content_type: application/zip                # Content type of the file
+      # Create a release based on the tag
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
         
       - name: Zip Files
         uses: papeloto/action-zip@v1
         with:
           files: ${{ steps.releaseDistributable.outputs.distributable }}
           dest: ${{ steps.releaseDistributable.outputs.distributable }}.zip
+
+      # Upload the ZIP as a release asset
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.releaseDistributable.outputs.distributable }}.zip
+          #asset_name: my-archive.zip
+          asset_content_type: application/zip
 
       #- name: Build Release bundle
       #  env:
