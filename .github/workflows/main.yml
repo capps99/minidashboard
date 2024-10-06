@@ -53,6 +53,8 @@ jobs:
 
       - name: Create Distributable
         run: ./gradlew composeApp:createDistributable --stacktrace
+
+      - name: Upload Distributable
         run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/*.*)" >> $GITHUB_OUTPUT
 
       #- name: Build Release bundle
