@@ -57,9 +57,6 @@ jobs:
       - name: Create Distributable
         run: ./gradlew composeApp:packageDeb --stacktrace
 
-      - name: List all files recursively
-        run: ls composeApp/build/compose/binaries/main/app
-
       #- name: Upload Distributable
       #  run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app.jar)" >> $GITHUB_OUTPUT
 
