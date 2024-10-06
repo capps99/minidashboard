@@ -69,7 +69,7 @@ jobs:
       - name: Upload Distributable4
        #/home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb/com.minidashboard.app_1.0.0-1_amd64.deb
         id: releaseDistributable1
-        run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/*.deb)" >> $GITHUB_OUTPUT
+        run: echo "distributable=$(find /home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb/com.minidashboard.app_1.0.0-1_amd64.deb)" >> $GITHUB_OUTPUT
 
      # Step2: Create a ZIP file of the desired folder or files
       - name: Zip files
