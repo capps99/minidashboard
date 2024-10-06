@@ -67,7 +67,14 @@ jobs:
         run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app.pkg)" >> $GITHUB_OUTPUT
         
       - name: Upload Distributable4
-        run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app)" >> $GITHUB_OUTPUT
+        id: releaseDistributable
+        run: echo "distributable=$(find composeApp/build/compose/binaries/main/app/com.minidashboard.app/lib)" >> $GITHUB_OUTPUT
+
+      - name: Zip Files
+        uses: papeloto/action-zip@v1
+        with:
+          files: ${{ steps.releaseDistributable.outputs.distributable }}
+          dest: ${{ steps.releaseApk.outputs.distributable }}.zip
 
       #- name: Build Release bundle
       #  env:
