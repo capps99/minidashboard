@@ -19,4 +19,8 @@ actual class CronDataSource actual constructor(
         return emptyList()
     }
 
+    actual fun delete(uuid: String) {
+        Napier.d { "Android - delete" }
+    }
+
 }
