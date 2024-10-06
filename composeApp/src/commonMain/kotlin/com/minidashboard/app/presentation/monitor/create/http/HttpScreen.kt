@@ -7,6 +7,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import com.minidashboard.app.data.models.*
+import com.minidashboard.app.presentation.monitor.widget.ScheduleWidget
 import com.minidashboard.app.presentation.widgets.ExpandableColumn
 import com.minidashboard.app.presentation.widgets.HelpIcon
 import io.github.aakira.napier.Napier
@@ -14,6 +15,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun HttpScreen(
+    cronProcess: CronProcess?,
     modifier: Modifier = Modifier,
     onCreated: (CronProcess) -> Unit = {},
 ) {
@@ -92,12 +94,9 @@ fun HttpScreenContent(
     // Validate form fields to enable submit button
     submitEnabled = title.isNotEmpty() && url.isNotEmpty()
 
-    // show/hide dialog schedule
-    var showScheduleTypeDialog by remember { mutableStateOf(false) }
-    var showScheduleTypeSelected: Pair<String, String> by remember { mutableStateOf("Select a Time Interval" to "") }
-    var scheduleTime by remember { mutableStateOf("") }
-
     var ruleCode by remember { mutableStateOf("200") }
+
+    var _cronSchedule: CronSchedule? = null
 
     Box {
         Column {
@@ -143,33 +142,9 @@ fun HttpScreenContent(
                 }
             }
 
-            ExpandableColumn(
-                title = "Schedule"
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    OutlinedTextField(
-                        value = scheduleTime,
-                        onValueChange = { scheduleTime = it },
-                        label = { Text("Days/Hours/Minutes") },
-                        singleLine = true,
-                        modifier = Modifier.weight(0.30f)
-                    )
-                    Row (
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(0.30f)
-                    ) {
-                        Text("Type: ")
-                        Button(
-                            onClick = { showScheduleTypeDialog = true },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        ) {
-                            Text(showScheduleTypeSelected.first)
-                        }
-                    }
-                }
+            ScheduleWidget { cronSchedule ->
+                Napier.d {"CronSchedule created: $cronSchedule"}
+                _cronSchedule = cronSchedule
             }
 
             Row(
@@ -178,6 +153,11 @@ fun HttpScreenContent(
             ) {
                 Button(
                     onClick = {
+                        val schedule = _cronSchedule ?: run {
+                            Napier.d { "Schedule cannot be empty." }
+                            return@Button
+                        }
+
                         viewModel.processAction(
                             TestMonitorAction.Test(
                                 HttpCronProcess(
@@ -189,10 +169,7 @@ fun HttpScreenContent(
                                     setup = HttpSetupConfig(
                                         url = url
                                     ),
-                                    schedule = CronSchedule(
-                                        time = scheduleTime.toIntOrNull() ?: 0,
-                                        interval = showScheduleTypeSelected.second
-                                    ),
+                                    schedule = schedule,
                                     rules = viewModel.createRules(
                                         httpMatchCode = ruleCode
                                     ),
@@ -207,6 +184,11 @@ fun HttpScreenContent(
                 // Submit Button
                 Button(
                     onClick = {
+                        val schedule = _cronSchedule ?: run {
+                            Napier.d { "Schedule cannot be empty." }
+                            return@Button
+                        }
+
                         onCreated(
                             HttpCronProcess(
                                 common = CronCommmon(
@@ -217,10 +199,7 @@ fun HttpScreenContent(
                                 setup = HttpSetupConfig(
                                     url = url
                                 ),
-                                schedule = CronSchedule(
-                                    time = scheduleTime.toIntOrNull() ?: 0,
-                                    interval = showScheduleTypeSelected.second
-                                ),
+                                schedule = schedule,
                                 rules = viewModel.createRules(
                                     httpMatchCode = ruleCode
                                 ),

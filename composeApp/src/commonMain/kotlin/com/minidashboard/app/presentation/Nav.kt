@@ -7,6 +7,7 @@ import com.minidashboard.app.presentation.monitor.create.CreateMonitorScreen
 import com.minidashboard.app.presentation.monitor.home.MonitorScreen
 import com.minidashboard.app.presentation.widgets.TemplateScreen
 import moe.tlaster.precompose.navigation.NavHost
+import moe.tlaster.precompose.navigation.path
 import moe.tlaster.precompose.navigation.rememberNavigator
 import moe.tlaster.precompose.navigation.transition.NavTransition
 
@@ -42,10 +43,13 @@ fun Nav(modifier: Modifier = Modifier) {
             ) {
                 MonitorScreen(
                     onCreateMonitor = { navigator.navigate(Route.Monitor.CREATE) },
+                    onEditProccess = { selected ->
+                        navigator.navigate("${Route.Monitor.CREATE}/${selected.cron.common.uuid}")
+                    }
                 )
             }
         }
-        scene(
+        /*scene(
             route = Route.Monitor.CREATE
         ) {
             TemplateScreen(
@@ -53,6 +57,20 @@ fun Nav(modifier: Modifier = Modifier) {
                 onBackPressed = { navigator.popBackStack() }
             ) {
                 CreateMonitorScreen()
+            }
+        }*/
+        scene(
+            route = "${Route.Monitor.CREATE}/{uuid}?"
+        ) {backStackEntry ->
+            val uuid: String? = backStackEntry.path<String>("uuid")
+
+            TemplateScreen(
+                title = "Monitor/create/",
+                onBackPressed = { navigator.popBackStack() }
+            ) {
+                CreateMonitorScreen(
+                    uuid = uuid
+                )
             }
         }
     }
@@ -66,6 +84,8 @@ object Route {
     object Monitor {
         const val HOME = "/screen/monitor/home"
         const val CREATE = "/screen/monitor/create"
+
+        const val EDIT = "/screen/monitor/edit"
     }
 
 }

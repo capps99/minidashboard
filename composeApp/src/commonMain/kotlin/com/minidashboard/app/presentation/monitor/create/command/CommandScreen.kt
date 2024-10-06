@@ -7,14 +7,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.minidashboard.app.data.models.*
+import com.minidashboard.app.presentation.monitor.widget.ScheduleWidget
 import com.minidashboard.app.presentation.widgets.DialogListWidget
 import com.minidashboard.app.presentation.widgets.ExpandableColumn
 import com.minidashboard.app.presentation.widgets.HelpIcon
+import io.github.aakira.napier.Napier
 import org.koin.compose.viewmodel.koinViewModel
 
 
 @Composable
 fun CommandScreen(
+    cronProcess: CronProcess?,
     modifier: Modifier = Modifier,
     onCreated: (CronProcess) -> Unit = {},
 ) {
@@ -37,6 +40,7 @@ fun CommandScreen(
     }
 
     CommandScreenContent(
+        cronProcess = cronProcess,
         modifier = modifier,
         onCreated = onCreated,
     )
@@ -70,23 +74,21 @@ fun CommandScreen(
 
 @Composable
 fun CommandScreenContent(
+    cronProcess: CronProcess?,
     onCreated: (CronProcess) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val viewModel = koinViewModel<CommandScreenViewModel>()
 
     // State variables for the form fields
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+    var title by remember { mutableStateOf(cronProcess?.common?.title ?: "") }
+    var description by remember { mutableStateOf(cronProcess?.common?.description ?:"") }
     var command by remember { mutableStateOf("") }
     var submitEnabled by remember { mutableStateOf(false) }
     // Validate form fields to enable submit button
     submitEnabled = title.isNotEmpty() && command.isNotEmpty()
 
-    // show/hide dialog schedule
-    var showScheduleTypeDialog by remember { mutableStateOf(false) }
-    var showScheduleTypeSelected: Pair<String, String> by remember { mutableStateOf("Select a Time Interval" to "") }
-    var scheduleTime by remember { mutableStateOf("") }
+    var _cronSchedule: CronSchedule? = null
 
     var ruleExitCode by remember { mutableStateOf("0") }
 
@@ -140,58 +142,11 @@ fun CommandScreenContent(
                 }
             }
 
-            ExpandableColumn(
-                title = "Schedule"
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    OutlinedTextField(
-                        value = scheduleTime,
-                        onValueChange = { scheduleTime = it },
-                        label = { Text("Days/Hours/Minutes") },
-                        singleLine = true,
-                        modifier = Modifier.weight(0.30f)
-                    )
-                    Row (
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(0.30f)
-                    ) {
-                        Text("Type: ")
-                        Button(
-                            onClick = { showScheduleTypeDialog = true },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        ) {
-                            Text(showScheduleTypeSelected.first)
-                        }
-                    }
-                    HelpIcon(
-                        title = "Exit code",
-                        description = """
-                        0 = Bash success return.
-                        -1 = Bash thrown an error.
-                        """.trimIndent(),
-                        modifier = Modifier.weight(0.10f, false)
-                    )
-                }
+            ScheduleWidget { cronSchedule ->
+                Napier.d {"CronSchedule created: $cronSchedule"}
+                _cronSchedule = cronSchedule
             }
 
-            DialogListWidget(
-                options = listOfNotNull(
-                    "Select an option" to "",
-                    "Minutes" to CronSchedule.MINUTES,
-                    "Hours" to CronSchedule.HOURS,
-                    "Days" to CronSchedule.DAYS,
-                ),
-                isShowing= showScheduleTypeDialog
-            ) { (label, type) ->
-                // Validate not null
-                if(type.isNullOrEmpty()) return@DialogListWidget
-
-                showScheduleTypeSelected = Pair(label, type)
-                showScheduleTypeDialog = false
-            }
 
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -199,6 +154,11 @@ fun CommandScreenContent(
             ) {
                 Button(
                     onClick = {
+                        val schedule = _cronSchedule ?: run {
+                            Napier.d { "Schedule cannot be empty." }
+                            return@Button
+                        }
+
                         viewModel.processAction(
                             CommandMonitorAction.Test(
                                 CommandCronProcess(
@@ -210,10 +170,7 @@ fun CommandScreenContent(
                                     setup = CommandSetupConfig(
                                         command = command
                                     ),
-                                    schedule = CronSchedule(
-                                        time = scheduleTime.toIntOrNull() ?: 0,
-                                        interval = showScheduleTypeSelected.second
-                                    ),
+                                    schedule = schedule,
                                     rules = viewModel.createRules(
                                         ruleExitCode = ruleExitCode
                                     ),
@@ -228,6 +185,11 @@ fun CommandScreenContent(
                 // Submit Button
                 Button(
                     onClick = {
+                        val schedule = _cronSchedule ?: run {
+                            Napier.d { "Schedule cannot be empty." }
+                            return@Button
+                        }
+
                         onCreated(
                             CommandCronProcess(
                                 common = CronCommmon(
@@ -238,10 +200,7 @@ fun CommandScreenContent(
                                 setup = CommandSetupConfig(
                                     command = command
                                 ),
-                                schedule = CronSchedule(
-                                    time = scheduleTime.toIntOrNull() ?: 0,
-                                    interval = showScheduleTypeSelected.second
-                                ),
+                                schedule = schedule,
                                 rules = viewModel.createRules(
                                     ruleExitCode = ruleExitCode
                                 )

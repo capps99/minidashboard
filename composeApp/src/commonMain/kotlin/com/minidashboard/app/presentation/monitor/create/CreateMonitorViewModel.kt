@@ -8,14 +8,17 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 
 sealed interface CreateMonitorAction {
-    data object Increment : CreateMonitorAction
+    data class Load(
+        val uuid: String?
+    ) : CreateMonitorAction
     data class Create(val process: CronProcess) : CreateMonitorAction
+    data class Delete(val uuid: String) : CreateMonitorAction
 }
 
 sealed interface CreateMonitorState {
     data object Initial : CreateMonitorState
     data class Data(
-        val attempt: Int = 0
+        val procces: CronProcess?
     ) : CreateMonitorState
 }
 
@@ -27,35 +30,41 @@ class CreateMonitorViewModel(
 
     fun processAction(action: CreateMonitorAction) {
         when (action) {
-            CreateMonitorAction.Increment -> increment()
+            is CreateMonitorAction.Load -> load(action)
             is CreateMonitorAction.Create -> create(action)
+            is CreateMonitorAction.Delete -> delete(action)
         }
     }
 
+    private fun load(action: CreateMonitorAction.Load){
+        Napier.d { "with action: $action" }
+        val uuid = action.uuid ?: run {
+            state.value = CreateMonitorState.Data(
+                procces = null
+            )
+            return
+        }
+
+        Napier.d { "Searching data from proccess uuid: $uuid" }
+        val proccess = useCase.find(uuid = uuid)
+
+        state.value = CreateMonitorState.Data(
+            procces = proccess
+        )
+    }
+
+    private fun delete(action: CreateMonitorAction.Delete) {
+        Napier.d { "with action: $action" }
+        useCase.delete(action.uuid)
+    }
+
     private fun create(action: CreateMonitorAction.Create) {
-        Napier.d { "Monitor with $action" }
+        Napier.d { "with action: $action" }
         useCase.insert(action.process)
         startProcesses(
             listOf(
                 action.process
             )
         )
-    }
-
-    private fun increment() {
-        Napier.d { "Increment tapped!" }
-        when (val localState = state.value) {
-            is CreateMonitorState.Data -> {
-                state.value = localState.copy(
-                    attempt = localState.attempt + 1
-                )
-            }
-
-            CreateMonitorState.Initial -> {
-                state.value = CreateMonitorState.Data(
-                    attempt = 0
-                )
-            }
-        }
     }
 }

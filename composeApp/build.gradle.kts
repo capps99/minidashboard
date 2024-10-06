@@ -14,7 +14,8 @@ plugins {
 }
 
 kotlin {
-    // enable when wasm supports mjultiplaform (soon)
+    // enable when wasm supports mjultiplaform (soon).
+    // use settings like desktop to enable this.
     /*@OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         moduleName = "composeApp"

@@ -34,6 +34,9 @@ sealed interface MonitorActions {
     data object Load : MonitorActions
     data object Start : MonitorActions
     data object Stop : MonitorActions
+    data class Edit(
+        val cronItem: CronItem
+    ) : MonitorActions
 }
 
 enum class Status {
@@ -54,6 +57,7 @@ class MonitorViewModel(
             MonitorActions.Load -> load()
             MonitorActions.Start -> start()
             MonitorActions.Stop -> stop()
+            is MonitorActions.Edit -> edit(action.cronItem)
         }
     }
 
@@ -76,6 +80,10 @@ class MonitorViewModel(
             state.value = data
         }
         // generateRandomStatuses()
+    }
+
+    private fun edit(cronItem: CronItem){
+        
     }
 
     private fun start() {

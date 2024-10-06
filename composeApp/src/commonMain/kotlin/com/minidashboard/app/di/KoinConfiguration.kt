@@ -1,5 +1,6 @@
 package com.minidashboard.app.di
 
+import com.minidashboard.app.data.di.modules.dataModules
 import com.minidashboard.app.di.modules.commonModules
 import com.minidashboard.app.domain.app.FileLogger
 import com.minidashboard.app.domain.di.modules.domainModules
@@ -15,6 +16,7 @@ fun koinConfiguration(additionalModules: List<Module> = emptyList()) = koinAppli
     modules(
         commonModules,
         domainModules,
+        dataModules,
     )
 }
 

@@ -1,4 +1,4 @@
-package com.minidashboard.app.domain.cache
+package com.minidashboard.app.data.cache
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList

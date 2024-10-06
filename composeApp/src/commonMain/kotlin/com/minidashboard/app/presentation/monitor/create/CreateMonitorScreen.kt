@@ -5,6 +5,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,10 +18,13 @@ import com.minidashboard.app.data.models.WebSocketSetupConfig
 import com.minidashboard.app.presentation.monitor.create.command.CommandScreen
 import com.minidashboard.app.presentation.monitor.create.http.HttpScreen
 import com.minidashboard.app.presentation.widgets.DialogListWidget
+import com.minidashboard.app.presentation.widgets.FloatButton
+import io.github.aakira.napier.Napier
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun CreateMonitorScreen(
+    uuid: String?,
     modifier: Modifier = Modifier
 ) {
     val viewModel = koinViewModel<CreateMonitorViewModel>()
@@ -29,62 +34,89 @@ fun CreateMonitorScreen(
 
     val state by viewModel.state.collectAsState()
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)  // Add vertical scroll functionality
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        when (val s = state) {
-            is CreateMonitorState.Data -> Text("value ${s.attempt}")
-            CreateMonitorState.Initial -> {}
-        }
+    LaunchedEffect(Unit) {
+        viewModel.processAction(CreateMonitorAction.Load(uuid = uuid))
+    }
 
-        // Type Button
-        Row (
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
+    Box {
+
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)  // Add vertical scroll functionality
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Type: ")
-            Button(
-                onClick = { showTypeDialog = true },
-                modifier = modifier.fillMaxWidth()
-            ) {
-                Text(typeSelected.first)
+            when (val s = state) {
+                is CreateMonitorState.Data -> {
+                    // Type Button
+                    Row (
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Type: ")
+                        Button(
+                            onClick = { showTypeDialog = true },
+                            modifier = modifier.fillMaxWidth()
+                        ) {
+                            Text(typeSelected.first)
+                        }
+                    }
+
+
+                    Napier.d {"state: ${s}"}
+                    when(typeSelected.first){
+                        "Http" -> {
+                            HttpScreen(
+                                cronProcess = s.procces
+                            ) {
+                                viewModel.processAction(
+                                    action = CreateMonitorAction.Create(it)
+                                )
+                            }
+                        }
+                        "Command" -> {
+                            CommandScreen(
+                                cronProcess = s.procces
+                            ) {
+                                viewModel.processAction(
+                                    action = CreateMonitorAction.Create(it)
+                                )
+                            }
+                        }
+                    }
+
+                    DialogListWidget(
+                        options = listOfNotNull(
+                            "Select an option" to "",
+                            "Http" to HttpSetupConfig::class.simpleName,
+                            "WebSocket" to WebSocketSetupConfig::class.simpleName,
+                            "Python" to PythonSetupConfig::class.simpleName,
+                            "Command" to CommandSetupConfig::class.simpleName,
+                        ),
+                        isShowing= showTypeDialog
+                    ) { (label, type) ->
+                        typeSelected = Pair(label, type)
+                        showTypeDialog = false
+                    }
+                }
+                CreateMonitorState.Initial -> {}
             }
+
         }
 
 
-        when(typeSelected.first){
-            "Http" -> {
-                HttpScreen {
+        uuid?.let {
+            FloatButton(
+                icon = Icons.Default.Delete,
+                onTap = {
                     viewModel.processAction(
-                        action = CreateMonitorAction.Create(it)
+                        CreateMonitorAction.Delete(it)
                     )
-                }
-            }
-            "Command" -> {
-                CommandScreen {
-                    viewModel.processAction(
-                        action = CreateMonitorAction.Create(it)
-                    )
-                }
-            }
-        }
-
-        DialogListWidget(
-            options = listOfNotNull(
-                "Select an option" to "",
-                "Http" to HttpSetupConfig::class.simpleName,
-                "WebSocket" to WebSocketSetupConfig::class.simpleName,
-                "Python" to PythonSetupConfig::class.simpleName,
-                "Command" to CommandSetupConfig::class.simpleName,
-            ),
-            isShowing= showTypeDialog
-        ) { (label, type) ->
-            typeSelected = Pair(label, type)
-            showTypeDialog = false
+                },
+                modifier = modifier
+                    .align(Alignment.BottomEnd)
+            )
         }
     }
 }

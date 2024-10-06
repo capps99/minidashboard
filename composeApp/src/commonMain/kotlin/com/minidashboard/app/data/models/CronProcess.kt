@@ -20,6 +20,9 @@ sealed interface CronProcess {
     val setup: SetupConfig
     val rules: List<Rule>
 
+    val uuid: String
+        get() = common.uuid
+
     suspend fun execute(result: (ProccessResult) -> Unit)
     fun validate(): Boolean
 }
