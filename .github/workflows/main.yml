@@ -71,14 +71,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass the GITHUB_TOKEN here as well
         
-      - name: Zip Files
-        uses: papeloto/action-zip@v1
-        with:
-          files: ${{ steps.releaseDistributable.outputs.distributable }}
-          dest: ${{ steps.releaseDistributable.outputs.distributable }}.zip
+      #- name: Zip Files
+      #  uses: papeloto/action-zip@v1
+      #  with:
+      #    files: ${{ steps.releaseDistributable.outputs.distributable }}
+      #    dest: ${{ steps.releaseDistributable.outputs.distributable }}.zip
+
+      # Step 2: Create a ZIP file from the 'build/' directory
+      - name: Zip the build directory
+        run: zip -r release.zip /home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb
 
       # List files in a specific folder (e.g., src/)
-      - name: List files in the 'src' directory
+      - name: List files in the 'deb' directory
         run: ls -la /home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb
 
       # Upload the ZIP as a release asset
@@ -86,8 +90,8 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.releaseDistributable.outputs.distributable }}.zip
-          asset_name: com.minidashboard.app_1.0.0-1_amd64.zip
+          asset_path: /home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb/releases.zip
+          asset_name: releases.zip
           asset_content_type: application/zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass the GITHUB_TOKEN here as well
