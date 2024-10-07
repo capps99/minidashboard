@@ -77,13 +77,17 @@ jobs:
           files: ${{ steps.releaseDistributable.outputs.distributable }}
           dest: ${{ steps.releaseDistributable.outputs.distributable }}.zip
 
+      # List files in a specific folder (e.g., src/)
+      - name: List files in the 'src' directory
+        run: ls -la /home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb
+
       # Upload the ZIP as a release asset
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ steps.releaseDistributable.outputs.distributable }}.zip
-          #asset_name: my-archive.zip
+          asset_name: com.minidashboard.app_1.0.0-1_amd64.zip
           asset_content_type: application/zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass the GITHUB_TOKEN here as well
