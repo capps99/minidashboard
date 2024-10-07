@@ -78,7 +78,7 @@ jobs:
         
       # Step 2: Create a ZIP file from the 'build/' directory
       - name: Zip the build directory
-        run: zip -r release.zip /home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb
+        run: zip -r release-archive.zip /home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb
 
       # List files in a specific folder (e.g., src/)
       - name: List files in the 'deb' directory 2
@@ -89,8 +89,8 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb/releases.zip
-          asset_name: releases.zip
+          asset_path: ./release-archive.zip
+          asset_name: releases-${{ github.ref_name }}.zip
           asset_content_type: application/zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass the GITHUB_TOKEN here as well
