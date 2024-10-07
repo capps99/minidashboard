@@ -26,7 +26,7 @@ fun initKoin(additionalModules: List<Module> = emptyList()) {
     println("platform: $platform")
     if(platform.contains("java", ignoreCase = true)){
         println("File Logger: $platform")
-        Napier.base(FileLogger())
+        // Napier.base(FileLogger())
     }
     else {
         println("Standart Logger: $platform")
