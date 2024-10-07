@@ -68,6 +68,8 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass the GITHUB_TOKEN here as well
         
       - name: Zip Files
         uses: papeloto/action-zip@v1
@@ -83,6 +85,8 @@ jobs:
           asset_path: ${{ steps.releaseDistributable.outputs.distributable }}.zip
           #asset_name: my-archive.zip
           asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass the GITHUB_TOKEN here as well
 
       #- name: Build Release bundle
       #  env:
