@@ -70,6 +70,11 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass the GITHUB_TOKEN here as well
+
+          # List files in a specific folder (e.g., src/)
+      - name: List files in the 'deb' directory 1
+        run: ls -la /home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb
+
         
       #- name: Zip Files
       #  uses: papeloto/action-zip@v1
@@ -82,7 +87,7 @@ jobs:
         run: zip -r release.zip /home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb
 
       # List files in a specific folder (e.g., src/)
-      - name: List files in the 'deb' directory
+      - name: List files in the 'deb' directory 2
         run: ls -la /home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb
 
       # Upload the ZIP as a release asset
