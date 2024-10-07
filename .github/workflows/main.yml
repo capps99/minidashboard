@@ -65,7 +65,7 @@ jobs:
         uses: actions/create-release@v1
         with:
           # tag_name: ${{ github.ref_name }}
-          tag_name: 'v1.0.0'  # Manually specify the tag name
+          tag_name: 'v0.0.1'  # Manually specify the tag name
           release_name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
