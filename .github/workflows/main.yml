@@ -1,10 +1,10 @@
 name: Create Releases
-#on:
-#  workflow_dispatch:
-#    inputs:
-#      name:
-#        description: "Release-Build"
-#        default: "Generate release build"
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: "Release-Build"
+        default: "Generate releases"
 #      testers:
 #        type: choice
 #        description: "Select testers"
@@ -12,13 +12,13 @@ name: Create Releases
 #          - android
 #          - internalTesters
 #          - everyone
-
-
 # Trigger on a push to tags that match the 'v*' pattern (e.g., v1.0.0, v2.0.1, etc.)
-on:
   push:
     tags:
       - 'v*'  # Match version tags like v1.0.0
+
+
+
 
 jobs:
   build:
@@ -71,7 +71,8 @@ jobs:
          id: create_release
          uses: actions/create-release@v1
          with:
-           tag_name: ${{ github.ref_name }}
+           #tag_name: ${{ github.ref_name }}
+           tag_name: 'v1.0.0'  # Manually specify the tag name
            release_name: Release ${{ github.ref_name }}
            draft: false
            prerelease: false
