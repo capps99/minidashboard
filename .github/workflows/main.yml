@@ -60,16 +60,16 @@ jobs:
         run: echo "distributable=$(find /home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb/*.deb)" >> $GITHUB_OUTPUT
 
       # Create a release based on the tag
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass the GITHUB_TOKEN here as well
+      # - name: Create Release
+      #   id: create_release
+      #   uses: actions/create-release@v1
+      #   with:
+      #     tag_name: ${{ github.ref_name }}
+      #     release_name: Release ${{ github.ref_name }}
+      #     draft: false
+      #     prerelease: false
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Pass the GITHUB_TOKEN here as well
 
           # List files in a specific folder (e.g., src/)
       - name: List files in the 'deb' directory 1
