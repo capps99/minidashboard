@@ -54,7 +54,7 @@ jobs:
       - name: Create Distributable
         run: ./gradlew composeApp:packageDeb --stacktrace
         
-      - name: Upload Distributable4
+      - name: Find Distributable4
        #/home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb/com.minidashboard.app_1.0.0-1_amd64.deb
         id: releaseDistributable
         run: echo "distributable=$(find /home/runner/work/minidashboard/minidashboard/composeApp/build/compose/binaries/main/deb/*.deb)" >> $GITHUB_OUTPUT
