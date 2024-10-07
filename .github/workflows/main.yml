@@ -2,6 +2,10 @@ name: Create Release
 
 on:
   workflow_dispatch:  # Allows manual triggering of the workflow
+    inputs:
+        name:
+          description: "Release-Build"
+          default: "Generate release build"
 
 jobs:
   build:
