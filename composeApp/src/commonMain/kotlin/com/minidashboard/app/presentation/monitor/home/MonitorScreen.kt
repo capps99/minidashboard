@@ -149,16 +149,25 @@ fun ListItemView(
                     )
                 }
 
-                IconButton(
-                    onClick = {
-                        onEdit(item)
-                    },
-                ){
-                    Icon(
-                        imageVector = Icons.Default.Build,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp) // Set size of the icon
+                // Right Bar / End Bar
+                Column {
+                    Text(
+                        text = "Last launch: ${cron.lastUpdate}",
+                        style = MaterialTheme.typography.caption,
+                        color = Color.Gray
                     )
+                    IconButton(
+                        modifier = Modifier.align(Alignment.End),
+                        onClick = {
+                            onEdit(item)
+                        },
+                    ){
+                        Icon(
+                            imageVector = Icons.Default.Build,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp) // Set size of the icon
+                        )
+                    }
                 }
             }
 

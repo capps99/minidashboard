@@ -3,14 +3,26 @@ package com.minidashboard.app.data.models
 import com.minidashboard.app.domain.command.Command
 import io.github.aakira.napier.Napier
 import io.ktor.client.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import kotlinx.datetime.*
+import kotlinx.datetime.format.Padding
+import kotlinx.datetime.format.char
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import kotlin.random.Random
+
+private val dateFormat = LocalDate.Format {
+    monthNumber(padding = Padding.SPACE)
+    char('/')
+    dayOfMonth()
+    char(' ')
+    year()
+}
 
 // Define a sealed interface for cron processes
 @Serializable
@@ -23,6 +35,8 @@ sealed interface Task {
     val uuid: String
         get() = common.uuid
 
+    val lastUpdate: String
+
     suspend fun execute(result: (ProccessResult) -> Unit)
     fun validate(): Boolean
 }
@@ -31,7 +45,7 @@ sealed interface Task {
 data class TaskSchedule(
     val time: Int,
     val interval: String
-){
+) {
 
     companion object {
         const val MINUTES = "Minutes"
@@ -45,7 +59,7 @@ data class TaskSchedule(
         fun hoursToMillis(hours: Long): Long = hours * 60 * 60 * 1000
         fun daysToMillis(days: Long): Long = days * 24 * 60 * 60 * 1000
 
-        return when(interval){
+        return when (interval) {
             MINUTES -> minutesToMillis(time.toLong())
             HOURS -> hoursToMillis(time.toLong())
             DAYS -> daysToMillis(time.toLong())
@@ -91,9 +105,9 @@ sealed interface Rule {
 @SerialName("MatchIntRule")
 data class MatchIntRule(
     val expected: Int,
-): Rule {
+) : Rule {
     override fun isValid(result: ProccessResult): Boolean {
-        return when(result){
+        return when (result) {
             is HttpResult -> result.code == expected
             is CommandResult -> result.code == expected
         }
@@ -111,26 +125,43 @@ data class HttpTask(
     override val rules: List<Rule>
 ) : Task {
 
-    private var result: ProccessResult ? = null
+    private var result: ProccessResult? = null
+    private var _lastUpdate: Instant? = null
+    override val lastUpdate: String
+        get() = _lastUpdate?.toLocalDateTime(TimeZone.currentSystemDefault())?.time.toString().take(5)
 
+    
     override suspend fun execute(result: (ProccessResult) -> Unit) {
         Napier.d { "Launching proccess ${common.uuid}" }
         Napier.d { "Executing HTTP request to ${setup.url}" }
         // Implement the HTTP logic here (e.g., using Ktor or OkHttp)
-        val client = HttpClient(){
+        val client = HttpClient() {
+            install(HttpTimeout) {
+                requestTimeoutMillis = 24 * 60 * 60 * 1000
+                connectTimeoutMillis = 24 * 60 * 60 * 1000
+                socketTimeoutMillis = 24 * 60 * 60 * 1000
+            }
             engine {
             }
         }
-        val response = client.get(setup.url)
-        val content = response.bodyAsText()
+        try {
+            _lastUpdate = Clock.System.now()
+            val response = client.get(setup.url)
+            val content = response.bodyAsText()
 
-        HttpResult(
-            proccess = this,
-            code = response.status.value,
-            message = content
-        ).also{
-            this.result = it
-            result(it)
+            HttpResult(
+                proccess = this,
+                code = response.status.value,
+                message = content
+            ).also {
+                this.result = it
+                result(it)
+            }
+        } catch (e: HttpRequestTimeoutException) {
+            Napier.w { "Request timed out!" }
+            Napier.e(e.message ?: "exception on request", e.cause)
+        } finally {
+            client.close()
         }
     }
 
@@ -143,7 +174,7 @@ data class HttpTask(
 
         rules.forEach { rule ->
             Napier.d { "validating: $rule with: ${rule.isValid(proccessResult)}" }
-            if(!rule.isValid(proccessResult)) return false
+            if (!rule.isValid(proccessResult)) return false
         }
 
         return true
@@ -158,6 +189,11 @@ data class WebSocketTask(
     override val setup: WebSocketSetupConfig,
     override val rules: List<Rule>,
 ) : Task {
+    private var _lastUpdate: Instant? = null
+    override val lastUpdate: String
+        get() = _lastUpdate?.toLocalDateTime(TimeZone.currentSystemDefault())?.time.toString().take(5)
+
+
     override suspend fun execute(result: (ProccessResult) -> Unit) {
         TODO("Not yet implemented")
     }
@@ -176,23 +212,20 @@ data class CommandTask(
     override val rules: List<Rule>,
 ) : Task {
 
-    private var result: ProccessResult ? = null
+    private var result: ProccessResult? = null
+
+    private var _lastUpdate: Instant? = null
+    override val lastUpdate: String
+        get() = _lastUpdate?.toLocalDateTime(TimeZone.currentSystemDefault())?.time.toString().take(5)
 
     override suspend fun execute(result: (ProccessResult) -> Unit) {
         //kotlinc Main.kt -include-runtime -d Main.jar
         val commandString = setup.command
 
         val command = Command()
-
-        command.execute(
-            command = commandString,
-            onResult = {
-                val (code, message) = it
-            }
-        )
-
-        command.execute(commandString){ (code, message) ->
-            Napier.d {"Command result with code: $code, message: $message"}
+        _lastUpdate = Clock.System.now()
+        command.execute(commandString) { (code, message) ->
+            Napier.d { "Command result with code: $code, message: $message" }
             result(
                 CommandResult(
                     proccess = this,
@@ -214,7 +247,7 @@ data class CommandTask(
 
         rules.forEach { rule ->
             Napier.d { "validating: $rule with: ${rule.isValid(proccessResult)}" }
-            if(!rule.isValid(proccessResult)) return false
+            if (!rule.isValid(proccessResult)) return false
         }
 
         return true
@@ -224,7 +257,7 @@ data class CommandTask(
 @OptIn(InternalSerializationApi::class)
 fun Task.toJson(): String {
     val module = SerializersModule {
-        polymorphic(Task::class){
+        polymorphic(Task::class) {
             subclass(HttpTask::class)
             subclass(WebSocketTask::class)
         }
@@ -236,7 +269,7 @@ fun Task.toJson(): String {
 
 fun String.toCronProcess(): Task {
     val module = SerializersModule {
-        polymorphic(Task::class){
+        polymorphic(Task::class) {
             subclass(HttpTask::class)
             subclass(WebSocketTask::class)
         }

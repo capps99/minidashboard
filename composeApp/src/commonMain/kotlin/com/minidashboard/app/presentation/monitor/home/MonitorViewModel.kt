@@ -4,17 +4,15 @@ package com.minidashboard.app.presentation.monitor.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.minidashboard.app.data.models.CommandResult
-import com.minidashboard.app.data.models.Task
 import com.minidashboard.app.data.models.HttpResult
 import com.minidashboard.app.data.models.ProccessResult
+import com.minidashboard.app.data.models.Task
 import com.minidashboard.app.domain.app.*
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 
 sealed interface MonitorState {
     data object Initial : MonitorState
@@ -82,6 +80,10 @@ class MonitorViewModel(
         val state = state.value as? MonitorState.Data
 
         state?.let {
+            this.state.value = state.copy(
+                isProcessRuning = true,
+            )
+            
             val list = state.crons.values.map { it.task }
             startProcesses(
                 list,
@@ -150,8 +152,7 @@ class MonitorViewModel(
 
                     Napier.d { "Updating state" }
                     this.state.value = state.copy(
-                        crons = data,
-                        isProcessRuning = true,
+                        crons = data
                     )
                 }
 

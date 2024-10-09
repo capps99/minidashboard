@@ -102,6 +102,9 @@ kotlin {
            //  implementation(libs.kotlinx.coroutines.core)
 
             implementation(libs.kotlinx.serialization.json)
+
+            implementation(libs.kotlinx.datetime)
+
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
