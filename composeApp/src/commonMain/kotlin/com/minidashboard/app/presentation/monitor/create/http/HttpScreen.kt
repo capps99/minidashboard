@@ -5,7 +5,6 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import com.minidashboard.app.data.models.*
 import com.minidashboard.app.presentation.monitor.widget.ScheduleWidget
 import com.minidashboard.app.presentation.widgets.ExpandableColumn
@@ -15,9 +14,9 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun HttpScreen(
-    cronProcess: CronProcess?,
+    task: Task?,
     modifier: Modifier = Modifier,
-    onCreated: (CronProcess) -> Unit = {},
+    onCreated: (Task) -> Unit = {},
 ) {
     val viewModel = koinViewModel<HttpScreenViewModel>()
     val state by viewModel.state.collectAsState()
@@ -81,7 +80,7 @@ fun HttpScreen(
 
 @Composable
 fun HttpScreenContent(
-    onCreated: (CronProcess) -> Unit = {},
+    onCreated: (Task) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val viewModel = koinViewModel<HttpScreenViewModel>()
@@ -96,7 +95,7 @@ fun HttpScreenContent(
 
     var ruleCode by remember { mutableStateOf("200") }
 
-    var _cronSchedule: CronSchedule? = null
+    var _cronSchedule: TaskSchedule? = null
 
     Box {
         Column {
@@ -160,8 +159,8 @@ fun HttpScreenContent(
 
                         viewModel.processAction(
                             TestMonitorAction.Test(
-                                HttpCronProcess(
-                                    common = CronCommmon(
+                                HttpTask(
+                                    common = TaskCommmon(
                                         title = title,
                                         description = description,
                                         active = true,
@@ -190,8 +189,8 @@ fun HttpScreenContent(
                         }
 
                         onCreated(
-                            HttpCronProcess(
-                                common = CronCommmon(
+                            HttpTask(
+                                common = TaskCommmon(
                                     title = title,
                                     description = description,
                                     active = true,

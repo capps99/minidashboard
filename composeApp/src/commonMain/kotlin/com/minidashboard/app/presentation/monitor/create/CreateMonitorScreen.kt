@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.minidashboard.app.data.models.CommandSetupConfig
 import com.minidashboard.app.data.models.HttpSetupConfig
-import com.minidashboard.app.data.models.PythonSetupConfig
 import com.minidashboard.app.data.models.WebSocketSetupConfig
 import com.minidashboard.app.presentation.monitor.create.command.CommandScreen
 import com.minidashboard.app.presentation.monitor.create.http.HttpScreen
@@ -68,7 +67,7 @@ fun CreateMonitorScreen(
                     when(typeSelected.first){
                         "Http" -> {
                             HttpScreen(
-                                cronProcess = s.procces
+                                task = s.procces
                             ) {
                                 viewModel.processAction(
                                     action = CreateMonitorAction.Create(it)
@@ -77,7 +76,7 @@ fun CreateMonitorScreen(
                         }
                         "Command" -> {
                             CommandScreen(
-                                cronProcess = s.procces
+                                task = s.procces
                             ) {
                                 viewModel.processAction(
                                     action = CreateMonitorAction.Create(it)
@@ -91,7 +90,6 @@ fun CreateMonitorScreen(
                             "Select an option" to "",
                             "Http" to HttpSetupConfig::class.simpleName,
                             "WebSocket" to WebSocketSetupConfig::class.simpleName,
-                            "Python" to PythonSetupConfig::class.simpleName,
                             "Command" to CommandSetupConfig::class.simpleName,
                         ),
                         isShowing= showTypeDialog

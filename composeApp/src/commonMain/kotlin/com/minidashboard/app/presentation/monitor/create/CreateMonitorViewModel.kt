@@ -1,7 +1,7 @@
 package com.minidashboard.app.presentation.monitor.create
 
 import androidx.lifecycle.ViewModel
-import com.minidashboard.app.data.models.CronProcess
+import com.minidashboard.app.data.models.Task
 import com.minidashboard.app.domain.app.CronUseCase
 import com.minidashboard.app.domain.app.startProcesses
 import io.github.aakira.napier.Napier
@@ -11,14 +11,14 @@ sealed interface CreateMonitorAction {
     data class Load(
         val uuid: String?
     ) : CreateMonitorAction
-    data class Create(val process: CronProcess) : CreateMonitorAction
+    data class Create(val process: Task) : CreateMonitorAction
     data class Delete(val uuid: String) : CreateMonitorAction
 }
 
 sealed interface CreateMonitorState {
     data object Initial : CreateMonitorState
     data class Data(
-        val procces: CronProcess?
+        val procces: Task?
     ) : CreateMonitorState
 }
 

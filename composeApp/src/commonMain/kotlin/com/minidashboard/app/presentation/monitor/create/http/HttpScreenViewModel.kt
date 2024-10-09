@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 sealed interface TestMonitorAction {
     data class Test(
-        val process: CronProcess
+        val process: Task
     ) : TestMonitorAction
     data object hideError:TestMonitorAction
 }

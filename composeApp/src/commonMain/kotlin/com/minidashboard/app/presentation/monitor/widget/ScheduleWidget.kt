@@ -8,7 +8,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.minidashboard.app.data.models.CronSchedule
+import com.minidashboard.app.data.models.TaskSchedule
 import com.minidashboard.app.presentation.widgets.DialogListWidget
 import com.minidashboard.app.presentation.widgets.ExpandableColumn
 import com.minidashboard.app.presentation.widgets.HelpIcon
@@ -16,7 +16,7 @@ import com.minidashboard.app.presentation.widgets.HelpIcon
 @Composable
 fun ScheduleWidget(
     modifier: Modifier = Modifier,
-    schedule: (CronSchedule) -> Unit = {},
+    schedule: (TaskSchedule) -> Unit = {},
 ) {
     // show/hide dialog schedule
     var showScheduleTypeDialog by remember { mutableStateOf(false) }
@@ -37,7 +37,7 @@ fun ScheduleWidget(
                     val interval = showScheduleTypeSelected.second ?: return@OutlinedTextField
                     val time = it.toIntOrNull() ?: return@OutlinedTextField
                     schedule(
-                        CronSchedule(
+                        TaskSchedule(
                             time = time,
                             interval = interval,
                         )
@@ -74,9 +74,9 @@ fun ScheduleWidget(
     DialogListWidget(
         options = listOfNotNull(
             "Select an option" to "",
-            "Minutes" to CronSchedule.MINUTES,
-            "Hours" to CronSchedule.HOURS,
-            "Days" to CronSchedule.DAYS,
+            "Minutes" to TaskSchedule.MINUTES,
+            "Hours" to TaskSchedule.HOURS,
+            "Days" to TaskSchedule.DAYS,
         ),
         isShowing = showScheduleTypeDialog
     ) { (label, type) ->
@@ -90,7 +90,7 @@ fun ScheduleWidget(
         val time = scheduleTime.toIntOrNull() ?: return@DialogListWidget
 
         schedule(
-            CronSchedule(
+            TaskSchedule(
                 time = time,
                 interval = interval,
             )

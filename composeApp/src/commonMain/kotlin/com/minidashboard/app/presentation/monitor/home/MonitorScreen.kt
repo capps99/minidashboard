@@ -14,7 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.minidashboard.app.data.models.CronProcess
+import com.minidashboard.app.data.models.Task
+import com.minidashboard.app.domain.app.CronItem
 import com.minidashboard.app.presentation.widgets.FloatButton
 import io.github.aakira.napier.Napier
 import minidashboard.composeapp.generated.resources.Res
@@ -112,7 +113,7 @@ fun ListItemView(
     item: CronItem,
     onEdit: (CronItem) -> Unit,
 ) {
-    val cron = item.cron
+    val cron = item.task
 
     Card(
         modifier = Modifier
@@ -177,11 +178,7 @@ fun ListItemView(
                             .weight(1f)  // Equal weight for each box
                             .fillMaxHeight()
                             .background(
-                                color = when (status) {
-                                    Status.CORRECT -> Color.Green
-                                    Status.WARNING -> Color.Yellow
-                                    Status.ERROR -> Color.Red
-                                }
+                                color = status.color
                             )
                     )
                     Spacer(modifier = Modifier.width(4.dp)) // Add spacing between boxes

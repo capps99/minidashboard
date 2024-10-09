@@ -1,24 +1,20 @@
 package com.minidashboard.app.presentation.monitor.home
 
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.minidashboard.app.data.models.CommandResult
-import com.minidashboard.app.data.models.CronProcess
+import com.minidashboard.app.data.models.Task
 import com.minidashboard.app.data.models.HttpResult
 import com.minidashboard.app.data.models.ProccessResult
 import com.minidashboard.app.domain.app.*
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-
-
-data class CronItem(
-    val cron: CronProcess,
-    val statuses: List<Status>
-)
+import kotlinx.coroutines.withContext
 
 sealed interface MonitorState {
     data object Initial : MonitorState
@@ -35,10 +31,6 @@ sealed interface MonitorActions {
     data class Edit(
         val cronItem: CronItem
     ) : MonitorActions
-}
-
-enum class Status {
-    CORRECT, WARNING, ERROR
 }
 
 class MonitorViewModel(
@@ -68,7 +60,7 @@ class MonitorViewModel(
             val data = MonitorState.Data(
                 crons = cronUseCase.list().map { cron ->
                     cron.common.uuid to CronItem(
-                        cron = cron,
+                        task = cron,
                         statuses = emptyList(),
                     )
                 }.toMap(),
@@ -80,21 +72,30 @@ class MonitorViewModel(
         // generateRandomStatuses()
     }
 
-    private fun edit(cronItem: CronItem){
-        
+    private fun edit(cronItem: CronItem) {
+
     }
 
     private fun start() {
+
         Napier.d { "Start" }
         val state = state.value as? MonitorState.Data
 
         state?.let {
-            val list = state.crons.values.map { it.cron }
-            startProcesses(list) {
-                viewModelScope.launch {
-                    collect(it)
+            val list = state.crons.values.map { it.task }
+            startProcesses(
+                list,
+                onLaunched = {
+                    viewModelScope.launch {
+                        collect(it)
+                    }
+                },
+                onResult = {
+                    viewModelScope.launch {
+                        collect(it)
+                    }
                 }
-            }
+            )
         }
     }
 
@@ -106,6 +107,31 @@ class MonitorViewModel(
         this.state.value = state.copy(
             isProcessRuning = false,
         )
+    }
+
+    private suspend fun collect(task: Task) {
+        mutex.withLock {
+            Napier.d { "Collecting new task launched" }
+
+            val state = state.value
+            when (state) {
+                is MonitorState.Data -> {
+                    val task = jobs[task.uuid] ?: return
+                    val crons = state.crons.toMutableMap()
+                    crons[task.task.uuid] = task.copy(
+                        // Limit status on last 50
+                        statuses = task.statuses.takeLast(50)
+                    )
+
+                    Napier.d { "Updating state" }
+                    this.state.value = state.copy(
+                        crons = crons
+                    )
+                }
+
+                MonitorState.Initial -> return
+            }
+        }
     }
 
     private suspend fun collect(result: Result) {
@@ -136,6 +162,7 @@ class MonitorViewModel(
 
     private fun updateDataSource(input: Map<String, CronItem>, process: ProccessResult): MutableMap<String, CronItem> {
         val resp = input.toMutableMap()
+        val jobs = jobs
         when (val process = process) {
             // Fix this and comprees in a better emthod
             is HttpResult -> {
@@ -144,25 +171,24 @@ class MonitorViewModel(
                     return resp
                 }
 
-                resp[process.uuid] = cache.copy(
-                    statuses = (cache.statuses + when (process.proccess.validate()) {
-                        true -> Status.CORRECT
-                        false -> Status.ERROR
-                    }).take(10)
-                )
+                jobs[process.uuid]?.let {
+                    resp[process.uuid] = it.copy(
+                        statuses = it.statuses.takeLast(50)
+                    )
+                }
             }
+
             is CommandResult -> {
                 val cache = resp[process.uuid] ?: run {
                     Napier.d { "Cron data not found with id: ${process.uuid}" }
                     return resp
                 }
 
-                resp[process.uuid] = cache.copy(
-                    statuses = (cache.statuses + when (process.proccess.validate()) {
-                        true -> Status.CORRECT
-                        false -> Status.ERROR
-                    }).take(10)
-                )
+                jobs[process.uuid]?.let {
+                    resp[process.uuid] = it.copy(
+                        statuses = it.statuses.takeLast(50)
+                    )
+                }
             }
         }
 

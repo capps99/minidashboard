@@ -44,7 +44,7 @@ fun Nav(modifier: Modifier = Modifier) {
                 MonitorScreen(
                     onCreateMonitor = { navigator.navigate(Route.Monitor.CREATE) },
                     onEditProccess = { selected ->
-                        navigator.navigate("${Route.Monitor.CREATE}/${selected.cron.common.uuid}")
+                        navigator.navigate("${Route.Monitor.CREATE}/${selected.task.common.uuid}")
                     }
                 )
             }

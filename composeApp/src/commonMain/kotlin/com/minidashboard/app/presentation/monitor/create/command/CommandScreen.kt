@@ -17,9 +17,9 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun CommandScreen(
-    cronProcess: CronProcess?,
+    task: Task?,
     modifier: Modifier = Modifier,
-    onCreated: (CronProcess) -> Unit = {},
+    onCreated: (Task) -> Unit = {},
 ) {
     val viewModel = koinViewModel<CommandScreenViewModel>()
     val state by viewModel.state.collectAsState()
@@ -40,7 +40,7 @@ fun CommandScreen(
     }
 
     CommandScreenContent(
-        cronProcess = cronProcess,
+        task = task,
         modifier = modifier,
         onCreated = onCreated,
     )
@@ -74,21 +74,21 @@ fun CommandScreen(
 
 @Composable
 fun CommandScreenContent(
-    cronProcess: CronProcess?,
-    onCreated: (CronProcess) -> Unit = {},
+    task: Task?,
+    onCreated: (Task) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val viewModel = koinViewModel<CommandScreenViewModel>()
 
     // State variables for the form fields
-    var title by remember { mutableStateOf(cronProcess?.common?.title ?: "") }
-    var description by remember { mutableStateOf(cronProcess?.common?.description ?:"") }
+    var title by remember { mutableStateOf(task?.common?.title ?: "") }
+    var description by remember { mutableStateOf(task?.common?.description ?:"") }
     var command by remember { mutableStateOf("") }
     var submitEnabled by remember { mutableStateOf(false) }
     // Validate form fields to enable submit button
     submitEnabled = title.isNotEmpty() && command.isNotEmpty()
 
-    var _cronSchedule: CronSchedule? = null
+    var _cronSchedule: TaskSchedule? = null
 
     var ruleExitCode by remember { mutableStateOf("0") }
 
@@ -161,8 +161,8 @@ fun CommandScreenContent(
 
                         viewModel.processAction(
                             CommandMonitorAction.Test(
-                                CommandCronProcess(
-                                    common = CronCommmon(
+                                CommandTask(
+                                    common = TaskCommmon(
                                         title = title,
                                         description = description,
                                         active = true,
@@ -191,8 +191,8 @@ fun CommandScreenContent(
                         }
 
                         onCreated(
-                            CommandCronProcess(
-                                common = CronCommmon(
+                            CommandTask(
+                                common = TaskCommmon(
                                     title = title,
                                     description = description,
                                     active = true,

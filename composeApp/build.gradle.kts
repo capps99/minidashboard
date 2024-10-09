@@ -43,6 +43,18 @@ kotlin {
 
     jvm("desktop")
 
+    // Targets for various platforms
+/*    linuxX64("linux") {
+        binaries.executable {
+            entryPoint = "com.minidashboard.app.MainKt"
+        }
+    }
+    linuxArm64("linuxArm") {
+        binaries.executable {
+            entryPoint = "com.minidashboard.app.MainKt"
+        }
+    }*/
+
     listOf(
         iosX64(),
         iosArm64(),

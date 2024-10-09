@@ -5,7 +5,7 @@ sealed interface ProccessResult {
 }
 
 data class HttpResult(
-    val proccess: CronProcess,
+    val proccess: Task,
     val code: Int,
     val message: String
 ): ProccessResult {
@@ -14,7 +14,7 @@ data class HttpResult(
 
 
 data class CommandResult(
-    val proccess: CronProcess,
+    val proccess: Task,
     val code: Int,
     val message: String
 ): ProccessResult {

@@ -14,10 +14,10 @@ import kotlin.random.Random
 
 // Define a sealed interface for cron processes
 @Serializable
-sealed interface CronProcess {
-    val common: CronCommmon
-    val schedule: CronSchedule
-    val setup: SetupConfig
+sealed interface Task {
+    val common: TaskCommmon
+    val schedule: TaskSchedule
+    val setup: TaskConfig
     val rules: List<Rule>
 
     val uuid: String
@@ -28,7 +28,7 @@ sealed interface CronProcess {
 }
 
 @Serializable
-data class CronSchedule(
+data class TaskSchedule(
     val time: Int,
     val interval: String
 ){
@@ -56,7 +56,7 @@ data class CronSchedule(
 }
 
 @Serializable
-data class CronCommmon(
+data class TaskCommmon(
     val uuid: String = Random.nextInt(1, 99999).toString(),
     val title: String,
     val description: String,
@@ -65,23 +65,19 @@ data class CronCommmon(
 
 // Represent different configurations for each process type
 @Serializable
-sealed interface SetupConfig
+sealed interface TaskConfig
 
 @Serializable
 @SerialName("HttpSetup")
-data class HttpSetupConfig(val url: String, val parameters: Map<String, String> = emptyMap()) : SetupConfig
+data class HttpSetupConfig(val url: String, val parameters: Map<String, String> = emptyMap()) : TaskConfig
 
 @Serializable
 @SerialName("WebSocketSetup")
-data class WebSocketSetupConfig(val endpoint: String, val protocols: List<String> = emptyList()) : SetupConfig
-
-@Serializable
-@SerialName("PythonSetup")
-data class PythonSetupConfig(val scriptPath: String, val args: List<String> = emptyList()) : SetupConfig
+data class WebSocketSetupConfig(val endpoint: String, val protocols: List<String> = emptyList()) : TaskConfig
 
 @Serializable
 @SerialName("CommandSetup")
-data class CommandSetupConfig(val command: String) : SetupConfig
+data class CommandSetupConfig(val command: String) : TaskConfig
 
 @Serializable
 sealed interface Rule {
@@ -108,12 +104,12 @@ data class MatchIntRule(
 // Implement different cron processes with specific configurations
 @Serializable
 @SerialName("HttpCronProcess")
-data class HttpCronProcess(
-    override val common: CronCommmon,
-    override val schedule: CronSchedule,
+data class HttpTask(
+    override val common: TaskCommmon,
+    override val schedule: TaskSchedule,
     override val setup: HttpSetupConfig,
     override val rules: List<Rule>
-) : CronProcess {
+) : Task {
 
     private var result: ProccessResult ? = null
 
@@ -156,29 +152,12 @@ data class HttpCronProcess(
 
 @Serializable
 @SerialName("WebSocketCronProcess")
-data class WebSocketCronProcess(
-    override val common: CronCommmon,
-    override val schedule: CronSchedule,
+data class WebSocketTask(
+    override val common: TaskCommmon,
+    override val schedule: TaskSchedule,
     override val setup: WebSocketSetupConfig,
     override val rules: List<Rule>,
-) : CronProcess {
-    override suspend fun execute(result: (ProccessResult) -> Unit) {
-        TODO("Not yet implemented")
-    }
-
-    override fun validate(): Boolean {
-        TODO("Not yet implemented")
-    }
-}
-
-@Serializable
-@SerialName("PythonCronProcess")
-data class PythonCronProcess(
-    override val common: CronCommmon,
-    override val schedule: CronSchedule,
-    override val setup: PythonSetupConfig,
-    override val rules: List<Rule>,
-) : CronProcess {
+) : Task {
     override suspend fun execute(result: (ProccessResult) -> Unit) {
         TODO("Not yet implemented")
     }
@@ -190,12 +169,12 @@ data class PythonCronProcess(
 
 @Serializable
 @SerialName("CommandCronProcess")
-data class CommandCronProcess(
-    override val common: CronCommmon,
-    override val schedule: CronSchedule,
+data class CommandTask(
+    override val common: TaskCommmon,
+    override val schedule: TaskSchedule,
     override val setup: CommandSetupConfig,
     override val rules: List<Rule>,
-) : CronProcess {
+) : Task {
 
     private var result: ProccessResult ? = null
 
@@ -243,23 +222,23 @@ data class CommandCronProcess(
 }
 
 @OptIn(InternalSerializationApi::class)
-fun CronProcess.toJson(): String {
+fun Task.toJson(): String {
     val module = SerializersModule {
-        polymorphic(CronProcess::class){
-            subclass(HttpCronProcess::class)
-            subclass(WebSocketCronProcess::class)
+        polymorphic(Task::class){
+            subclass(HttpTask::class)
+            subclass(WebSocketTask::class)
         }
     }
 
     val format = Json { serializersModule = module }
-    return format.encodeToString(CronProcess::class.serializer(), this)
+    return format.encodeToString(Task::class.serializer(), this)
 }
 
-fun String.toCronProcess(): CronProcess {
+fun String.toCronProcess(): Task {
     val module = SerializersModule {
-        polymorphic(CronProcess::class){
-            subclass(HttpCronProcess::class)
-            subclass(WebSocketCronProcess::class)
+        polymorphic(Task::class){
+            subclass(HttpTask::class)
+            subclass(WebSocketTask::class)
         }
     }
 
@@ -267,7 +246,7 @@ fun String.toCronProcess(): CronProcess {
 
 
     // Deserialize the object
-    val deserialized: CronProcess = format.decodeFromString(CronProcess.serializer(), this)
+    val deserialized: Task = format.decodeFromString(Task.serializer(), this)
     println("Deserialized Object: $deserialized")
     return deserialized
 }

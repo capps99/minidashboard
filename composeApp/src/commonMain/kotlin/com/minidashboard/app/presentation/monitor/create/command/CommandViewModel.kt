@@ -1,7 +1,7 @@
 package com.minidashboard.app.presentation.monitor.create.command
 
 import androidx.lifecycle.ViewModel
-import com.minidashboard.app.data.models.CronProcess
+import com.minidashboard.app.data.models.Task
 import com.minidashboard.app.data.models.MatchIntRule
 import com.minidashboard.app.data.models.ProccessResult
 import com.minidashboard.app.data.models.Rule
@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 sealed interface CommandMonitorAction {
     data class Test(
-        val process: CronProcess
+        val process: Task
     ) : CommandMonitorAction
     data object hideError:CommandMonitorAction
 }
