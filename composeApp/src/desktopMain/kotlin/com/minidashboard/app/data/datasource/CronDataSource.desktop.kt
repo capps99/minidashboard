@@ -25,7 +25,7 @@ actual class CronDataSource actual constructor(
         val result = list + CronModel(
             uuid = uuid,
             setup = setup,
-            status = 1
+            status = true
         )
 
         settings.putString(

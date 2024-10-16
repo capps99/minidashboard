@@ -12,6 +12,7 @@ sealed interface HomeState {
 sealed interface HomeActions {
     data object TapButton: HomeActions
     data object TapMonitor: HomeActions
+    data object TapProjects: HomeActions
 }
 
 class HomeViewModel : ViewModel(){
@@ -26,6 +27,7 @@ class HomeViewModel : ViewModel(){
             }
 
             HomeActions.TapMonitor ->  Napier.d { "HomeViewModel - TapMonitor tapped!" }
+            HomeActions.TapProjects -> Napier.d { "HomeViewModel - Tap Projects tapped!" }
         }
     }
 

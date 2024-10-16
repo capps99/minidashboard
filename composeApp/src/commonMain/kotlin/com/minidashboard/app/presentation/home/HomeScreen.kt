@@ -20,7 +20,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 @Preview
 fun HomeScreen(
-    goToMonitor: () -> Unit = {}
+    goToProjects: () -> Unit = {},
+    goToMonitor: () -> Unit = {},
 ){
     MaterialTheme {
         val viewModel = koinViewModel<HomeViewModel>()
@@ -34,6 +35,12 @@ fun HomeScreen(
                 viewModel.processAction(HomeActions.TapButton)
             }) {
                 Text("Click me!")
+            }
+            Button(onClick = {
+                viewModel.processAction(HomeActions.TapProjects)
+                goToProjects()
+            }) {
+                Text("Go projects!")
             }
             Button(onClick = {
                 viewModel.processAction(HomeActions.TapMonitor)

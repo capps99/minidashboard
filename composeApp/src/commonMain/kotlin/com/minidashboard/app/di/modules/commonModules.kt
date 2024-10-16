@@ -7,6 +7,7 @@ import com.minidashboard.app.presentation.monitor.create.CreateMonitorViewModel
 import com.minidashboard.app.presentation.monitor.create.command.CommandScreenViewModel
 import com.minidashboard.app.presentation.monitor.create.http.HttpScreenViewModel
 import com.minidashboard.app.presentation.monitor.home.MonitorViewModel
+import com.minidashboard.app.presentation.projects.ProjectsViewModel
 import com.russhwolf.settings.Settings
 import org.koin.dsl.module
 
@@ -15,6 +16,7 @@ val commonModules = module {
     single<Settings> { Settings() }
 
     factory { HomeViewModel() }
+    factory { ProjectsViewModel(get()) }
     factory { MonitorViewModel(get()) }
     factory { CreateMonitorViewModel(get()) }
     factory { HttpScreenViewModel() }

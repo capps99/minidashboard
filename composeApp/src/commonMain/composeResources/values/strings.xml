@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MyApp</string>
+    <string name="welcome_message">Welcome to MyApp!</string>
+    <string name="login_button">Login</string>
+    <string name="signup_button">Sign Up</string>
+    <string name="logout_message">You have logged out successfully.</string>
+
+    <string name="projects_title">Projects</string>
+    <string name="monitor_title">Monitor</string>
+
+</resources>
