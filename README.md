@@ -1,5 +1,10 @@
 This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop.
 
+Issues:
+When launch `composeApp` and crash (on raspberry pi) add the following:
+> export MESA_EXTENSION_OVERRIDE="-GL_ARB_invalidate_subdata"
+
+
 * `/composeApp` is for code that will be shared across your Compose Multiplatform applications.
   It contains several subfolders:
   - `commonMain` is for code that’s common for all targets.
