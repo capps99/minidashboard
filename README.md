@@ -24,6 +24,11 @@ nano ~/.bashrc
 export ANDROID_HOME=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
 source ~/.bashrc
+sdkmanager --licenses
+sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+
+Run project
+> ./gradlew runDistributable
 
 
 
