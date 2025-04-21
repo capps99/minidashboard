@@ -12,6 +12,27 @@ Install gradle with SDKman
 > source "$HOME/.sdkman/bin/sdkman-init.sh"
 > sdk install gradle
 
+Install android tools.
+
+Create a directory for the SDK:
+mkdir -p ~/Android/Sdk/cmdline-tools
+cd ~/Android/Sdk/cmdline-tools
+wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O tools.zip
+unzip tools.zip
+mv cmdline-tools latest
+nano ~/.bashrc
+export ANDROID_HOME=$HOME/Android/Sdk
+export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+source ~/.bashrc
+
+
+
+
+.bashrc
+export ANDROID_HOME=$HOME/Android/Sdk
+export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+
+
 Build project:
 > ./gradlew clean build
 
