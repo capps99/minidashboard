@@ -1,5 +1,20 @@
 This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop.
 
+## Install on Raspberry
+Update system
+> sudo apt update && sudo apt upgrade -y
+ 
+Install JDK 17
+> sudo apt install openjdk-17-jdk -y
+
+Install gradle with SDKman
+> curl -s "https://get.sdkman.io" | bash
+> source "$HOME/.sdkman/bin/sdkman-init.sh"
+> sdk install gradle
+
+Build project:
+> ./gradlew clean build
+
 Issues:
 When launch `composeApp` and crash (on raspberry pi) add the following:
 > export MESA_EXTENSION_OVERRIDE="-GL_ARB_invalidate_subdata"
