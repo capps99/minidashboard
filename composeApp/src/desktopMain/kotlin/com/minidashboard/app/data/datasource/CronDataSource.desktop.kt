@@ -3,6 +3,7 @@ package com.minidashboard.app.data.datasource
 
 import com.minidashboard.app.data.datasource.CronDataSource.companion.KEY
 import com.minidashboard.app.data.models.CronModel
+import com.minidashboard.app.data.models.ProjectModel
 import com.minidashboard.app.domain.persistence.DriverFactory
 import com.russhwolf.settings.Settings
 import io.github.aakira.napier.Napier
@@ -22,11 +23,11 @@ actual class CronDataSource actual constructor(
         Napier.d { "JVM - insert" }
         val list = list()
 
-        val result = list + CronModel(
+        val result = list/* + CronModel(
             uuid = uuid,
             setup = setup,
             status = true
-        )
+        )*/
 
         settings.putString(
             key = KEY,
@@ -35,11 +36,11 @@ actual class CronDataSource actual constructor(
 
     }
 
-    actual fun list(): List<CronModel> {
+    actual fun list(): List<ProjectModel> {
         Napier.d { "JVM - list" }
         return try {
             val listString = settings.getString(KEY, "")
-            return Json.decodeFromString<List<CronModel>>(listString)
+            return Json.decodeFromString<List<ProjectModel>>(listString)
         } catch (e: SerializationException) {
             // Handle parsing errors by returning an empty list
             emptyList()

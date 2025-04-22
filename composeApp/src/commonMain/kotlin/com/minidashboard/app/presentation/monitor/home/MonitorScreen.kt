@@ -36,6 +36,7 @@ fun MonitorScreen(
 
     LaunchedEffect(Unit) {
         viewModel.processAction(MonitorActions.Load)
+        Napier.d { "MonitorScreen" }
     }
     
     when (val data = state) {

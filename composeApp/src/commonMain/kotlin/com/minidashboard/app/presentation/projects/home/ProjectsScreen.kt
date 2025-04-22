@@ -1,6 +1,7 @@
-package com.minidashboard.app.presentation.projects
+package com.minidashboard.app.presentation.projects.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -21,11 +22,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.aakira.napier.Napier
 import org.koin.compose.viewmodel.koinViewModel
 
 
 @Composable
-fun ProjectScreen(){
+fun ProjectScreen(
+    router: ProjectsCardsRouter
+){
     val viewModel = koinViewModel<ProjectsViewModel>()
     val state by viewModel.state.collectAsState()
 
@@ -34,7 +38,23 @@ fun ProjectScreen(){
     }
 
     when(val state = state){
-        is ProjectsState.Data -> listProjects(state)
+        is ProjectsState.Data -> listProjects(
+            state = state,
+            router = object : ProjectsScreenRouter {
+                override fun onTap(project: String) {
+                    Napier.d { "ProjectScreen onTap $project" }
+                    when (project.startsWith("+")){
+                        true -> onNewProject()
+                        false -> router.onTap(project)
+                    }
+
+                }
+
+                override fun onNewProject() {
+                    router.onNewProject()
+                }
+            }
+        )
         ProjectsState.Initial -> {
             // Nothing to do
         }
@@ -43,13 +63,17 @@ fun ProjectScreen(){
 }
 
 @Composable
-fun listProjects(state: ProjectsState.Data){
+fun listProjects(
+    state: ProjectsState.Data,
+    router: ProjectsScreenRouter
+){
     LazyVerticalGrid(
         columns = GridCells.Fixed(3), // 3 columns
         contentPadding = PaddingValues(8.dp),
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+
     ) {
         items(state.projects) { item ->
             Card(
@@ -58,6 +82,9 @@ fun listProjects(state: ProjectsState.Data){
                 modifier = Modifier
                     .padding(16.dp)
                     .fillMaxWidth()
+                    .clickable {
+                        router.onTap(item)
+                    }
             ) {
                 Column(
                     horizontalAlignment =  Alignment.CenterHorizontally,

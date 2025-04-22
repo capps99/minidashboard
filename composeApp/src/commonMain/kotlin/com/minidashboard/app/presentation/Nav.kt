@@ -5,9 +5,12 @@ import androidx.compose.ui.Modifier
 import com.minidashboard.app.presentation.home.HomeScreen
 import com.minidashboard.app.presentation.monitor.create.CreateMonitorScreen
 import com.minidashboard.app.presentation.monitor.home.MonitorScreen
-import com.minidashboard.app.presentation.projects.ProjectScreen
+import com.minidashboard.app.presentation.projects.home.ProjectScreen
+import com.minidashboard.app.presentation.projects.home.ProjectsCardsRouter
 import com.minidashboard.app.presentation.widgets.TemplateScreen
 import minidashboard.composeapp.generated.resources.Res
+import minidashboard.composeapp.generated.resources.monitor_title
+import minidashboard.composeapp.generated.resources.projects_create
 import minidashboard.composeapp.generated.resources.projects_title
 import moe.tlaster.precompose.navigation.NavHost
 import moe.tlaster.precompose.navigation.path
@@ -33,7 +36,7 @@ fun Nav(modifier: Modifier = Modifier) {
             ) {
                 HomeScreen(
                     goToMonitor = {
-                        navigator.navigate(Route.Monitor.HOME)
+                        navigator.navigate(Route.Projects.Monitor.HOME)
                     },
                     goToProjects = {
                         navigator.navigate(Route.Projects.HOME)
@@ -41,39 +44,56 @@ fun Nav(modifier: Modifier = Modifier) {
                 )
             }
         }
+        // region Projects
         scene( route = Route.Projects.HOME ){
             TemplateScreen(
                 title = stringResource(Res.string.projects_title),
                 onBackPressed = { navigator.popBackStack() }
             ) {
-                ProjectScreen()
+                ProjectScreen(
+                    router = object : ProjectsCardsRouter {
+                        override fun onTap(project: String) {
+                            val route = Route.Projects.DASHBOARD.replace("{project}", project)
+                            navigator.navigate(route)
+                        }
+
+                        override fun onNewProject() {
+                            navigator.navigate(Route.Projects.CREATE)
+                        }
+                    }
+                )
             }
         }
         scene(
-            route = Route.Monitor.HOME
-        ) {
+            route = Route.Projects.DASHBOARD
+        ) { backStackEntry ->
+            val project: String = backStackEntry.path<String>("project") ?: return@scene
+
             TemplateScreen(
-                title = stringResource(Res.string.projects_title),
+                title = "$project/${stringResource(Res.string.monitor_title)}",
                 onBackPressed = { navigator.popBackStack() }
             ) {
                 MonitorScreen(
-                    onCreateMonitor = { navigator.navigate(Route.Monitor.CREATE) },
+                    onCreateMonitor = {
+                        navigator.navigate(Route.Monitor.CREATE)
+                    },
                     onEditProccess = { selected ->
                         navigator.navigate("${Route.Monitor.CREATE}/${selected.task.common.uuid}")
                     }
                 )
             }
         }
-        /*scene(
-            route = Route.Monitor.CREATE
-        ) {
+        scene(
+            route = Route.Projects.CREATE
+        ) { backStackEntry ->
             TemplateScreen(
-                title = "Monitor/create",
+                title = stringResource(Res.string.projects_create),
                 onBackPressed = { navigator.popBackStack() }
             ) {
-                CreateMonitorScreen()
+
             }
-        }*/
+        }
+        // endregion
         scene(
             route = "${Route.Monitor.CREATE}/{uuid}?"
         ) {backStackEntry ->
@@ -93,15 +113,22 @@ fun Nav(modifier: Modifier = Modifier) {
 
 object Route {
     // SPLASH
-    const val SPLASH = "/screen/splash"
+    const val
+    SPLASH = "/screen/splash"
     const val HOME = "/screen/home"
 
     object Projects {
         const val HOME = "/screen/projects/home"
+        const val CREATE = "/screen/projects/create"
+        const val DASHBOARD = "/screen/projects/{project}"
+
+        object Monitor {
+            const val HOME = "/screen/projects/{project}/monitor"
+        }
     }
 
     object Monitor {
-        const val HOME = "/screen/monitor/home"
+        const val HOMEsss = "/screen/monitor/home"
         const val CREATE = "/screen/monitor/create"
 
         const val EDIT = "/screen/monitor/edit"

@@ -1,7 +1,8 @@
-package com.minidashboard.app.presentation.projects
+package com.minidashboard.app.presentation.projects.home
 
 import androidx.lifecycle.ViewModel
 import com.minidashboard.app.domain.app.projects.ProjectsUseCase
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 
 
@@ -9,7 +10,7 @@ sealed interface ProjectsState {
     data object Initial: ProjectsState
     data class Data(
         val projects: List<String>
-    ) :ProjectsState
+    ) : ProjectsState
 }
 
 sealed interface ProjectsActions {
@@ -31,13 +32,9 @@ class ProjectsViewModel(
     }
 
     private fun load(){
-        useCase.list()
-        val items = listOf(
-            "Palbarapp",
-            "RTCDMX",
-            "Funflags",
-            "+ Crear",
-        )
+        val data = useCase.list()
+        Napier.d { "Projects list: $data" }
+        val items = data.map { it.name } + "+ Crear"
 
         state.value = ProjectsState.Data(
             projects = items

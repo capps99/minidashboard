@@ -23,9 +23,10 @@ class CronUseCase(
 
 
     fun list(): List<Task> {
-        return datasource.list().mapNotNull {
+       /* return datasource.list().mapNotNull {
             it.toCronProcess()
-        }
+        }*/
+        return emptyList()
     }
 
     fun find(uuid: String): Task? = list().find {

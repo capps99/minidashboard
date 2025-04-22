@@ -1,6 +1,7 @@
 package com.minidashboard.app.data.datasource
 
 import com.minidashboard.app.data.models.CronModel
+import com.minidashboard.app.data.models.ProjectModel
 import com.minidashboard.app.domain.persistence.DriverFactory
 import com.minidashboard.db.cron.Cron
 import com.russhwolf.settings.Settings
@@ -14,7 +15,7 @@ actual class CronDataSource actual constructor(
         Napier.d { "Android - insert" }
     }
 
-    actual fun list(): List<CronModel> {
+    actual fun list(): List<ProjectModel> {
         Napier.d { "Android - list" }
         return emptyList()
     }
