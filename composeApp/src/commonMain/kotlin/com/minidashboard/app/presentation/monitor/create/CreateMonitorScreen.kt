@@ -23,6 +23,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun CreateMonitorScreen(
+    projectUUID: String,
     uuid: String?,
     modifier: Modifier = Modifier
 ) {
@@ -34,11 +35,13 @@ fun CreateMonitorScreen(
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.processAction(CreateMonitorAction.Load(uuid = uuid))
+        viewModel.processAction(CreateMonitorAction.Load(
+            projectUUID = projectUUID,
+            uuid = uuid,
+        ))
     }
 
     Box {
-
         Column(
             modifier = modifier
                 .fillMaxSize()
@@ -67,7 +70,7 @@ fun CreateMonitorScreen(
                     when(typeSelected.first){
                         "Http" -> {
                             HttpScreen(
-                                task = s.procces
+                                task = s.task
                             ) {
                                 viewModel.processAction(
                                     action = CreateMonitorAction.Create(it)
@@ -76,7 +79,7 @@ fun CreateMonitorScreen(
                         }
                         "Command" -> {
                             CommandScreen(
-                                task = s.procces
+                                task = s.task
                             ) {
                                 viewModel.processAction(
                                     action = CreateMonitorAction.Create(it)

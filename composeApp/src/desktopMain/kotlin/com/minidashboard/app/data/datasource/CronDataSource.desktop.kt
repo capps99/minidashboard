@@ -36,11 +36,11 @@ actual class CronDataSource actual constructor(
 
     }
 
-    actual fun list(): List<ProjectModel> {
+    actual fun list(): List<CronModel> {
         Napier.d { "JVM - list" }
         return try {
             val listString = settings.getString(KEY, "")
-            return Json.decodeFromString<List<ProjectModel>>(listString)
+            return Json.decodeFromString<List<CronModel>>(listString)
         } catch (e: SerializationException) {
             // Handle parsing errors by returning an empty list
             emptyList()

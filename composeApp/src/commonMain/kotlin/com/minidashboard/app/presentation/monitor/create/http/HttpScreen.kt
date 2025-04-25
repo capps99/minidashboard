@@ -152,11 +152,6 @@ fun HttpScreenContent(
             ) {
                 Button(
                     onClick = {
-                        val schedule = _cronSchedule ?: run {
-                            Napier.d { "Schedule cannot be empty." }
-                            return@Button
-                        }
-
                         viewModel.processAction(
                             TestMonitorAction.Test(
                                 HttpTask(
@@ -168,7 +163,9 @@ fun HttpScreenContent(
                                     setup = HttpSetupConfig(
                                         url = url
                                     ),
-                                    schedule = schedule,
+                                    schedule = TaskSchedule(
+                                        1, "Single"
+                                    ),
                                     rules = viewModel.createRules(
                                         httpMatchCode = ruleCode
                                     ),

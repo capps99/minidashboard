@@ -12,7 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import minidashboard.composeapp.generated.resources.Res
 import minidashboard.composeapp.generated.resources.compose_multiplatform
+import minidashboard.composeapp.generated.resources.home_data_title
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -22,6 +24,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun HomeScreen(
     goToProjects: () -> Unit = {},
     goToMonitor: () -> Unit = {},
+    goToSettings: () -> Unit = {},
 ){
     MaterialTheme {
         val viewModel = koinViewModel<HomeViewModel>()
@@ -47,6 +50,11 @@ fun HomeScreen(
                 goToMonitor()
             }) {
                 Text("Go monitor!")
+            }
+            Button(onClick = {
+                goToSettings()
+            }) {
+                Text(stringResource(Res.string.home_data_title))
             }
             AnimatedVisibility(showContent) {
                 val greeting = remember { /*Greeting().greet()*/ }

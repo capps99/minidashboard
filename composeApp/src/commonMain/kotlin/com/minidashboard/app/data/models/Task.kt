@@ -14,6 +14,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import minidashboard.composeapp.generated.resources.Res
+import minidashboard.composeapp.generated.resources.monitor_never
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
 import kotlin.random.Random
 
 private val dateFormat = LocalDate.Format {
@@ -48,6 +52,7 @@ data class TaskSchedule(
 ) {
 
     companion object {
+        const val SINGLE = "Single"
         const val MINUTES = "Minutes"
         const val HOURS = "Hours"
         const val DAYS = "Days"
@@ -63,6 +68,7 @@ data class TaskSchedule(
             MINUTES -> minutesToMillis(time.toLong())
             HOURS -> hoursToMillis(time.toLong())
             DAYS -> daysToMillis(time.toLong())
+            SINGLE -> daysToMillis(365.toLong())
             else -> minutesToMillis(time.toLong())
         }
     }
@@ -128,7 +134,12 @@ data class HttpTask(
     private var result: ProccessResult? = null
     private var _lastUpdate: Instant? = null
     override val lastUpdate: String
-        get() = _lastUpdate?.toLocalDateTime(TimeZone.currentSystemDefault())?.time.toString().take(5)
+        get() {
+            val datetime = _lastUpdate?.toLocalDateTime(TimeZone.currentSystemDefault())
+            datetime ?: return "Never"
+            return "${datetime.year}/${datetime.monthNumber}/${datetime.dayOfMonth} - ${datetime.time.hour}:${datetime.time.minute}"
+        }
+        //get() = _lastUpdate?.toLocalDateTime(TimeZone.currentSystemDefault())?.time.toString()//.take(5)
 
     
     override suspend fun execute(result: (ProccessResult) -> Unit) {
@@ -252,6 +263,14 @@ data class CommandTask(
 
         return true
     }
+}
+
+fun Task.toCronModel(): CronModel {
+    return CronModel(
+        uuid = this.uuid,
+        setup = this.toJson(),
+        status = true
+    )
 }
 
 @OptIn(InternalSerializationApi::class)

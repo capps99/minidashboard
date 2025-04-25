@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.minidashboard.app.data.models.ProjectModel
 import com.minidashboard.app.data.models.Task
 import com.minidashboard.app.domain.app.CronItem
 import com.minidashboard.app.presentation.widgets.FloatButton
@@ -28,6 +29,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun MonitorScreen(
+    projectUUID: String,
     onCreateMonitor: () -> Unit = {},
     onEditProccess: (CronItem) -> Unit = {},
 ) {
@@ -35,7 +37,9 @@ fun MonitorScreen(
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.processAction(MonitorActions.Load)
+        viewModel.processAction(
+            MonitorActions.Load(projectUUID = projectUUID)
+        )
         Napier.d { "MonitorScreen" }
     }
     
@@ -114,7 +118,7 @@ fun ListItemView(
     item: CronItem,
     onEdit: (CronItem) -> Unit,
 ) {
-    val cron = item.task
+    val task = item.task
 
     Card(
         modifier = Modifier
@@ -136,7 +140,7 @@ fun ListItemView(
                 ) {
                     // Title
                     Text(
-                        text = cron.common.title,
+                        text = task.common.title,
                         style = MaterialTheme.typography.body1,
                         color = Color.Black
                     )
@@ -144,7 +148,7 @@ fun ListItemView(
                     // Description
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = cron.common.description,
+                        text = task.common.description,
                         style = MaterialTheme.typography.body2,
                         color = Color.Gray
                     )
@@ -153,7 +157,7 @@ fun ListItemView(
                 // Right Bar / End Bar
                 Column {
                     Text(
-                        text = "Last launch: ${cron.lastUpdate}",
+                        text = "Last launch: ${task.lastUpdate}",
                         style = MaterialTheme.typography.caption,
                         color = Color.Gray
                     )
@@ -202,6 +206,8 @@ fun ListItemView(
 @Composable
 fun DefaultPreview() {
     MaterialTheme {
-        MonitorScreen()
+        MonitorScreen(
+            projectUUID = "123123123"
+        )
     }
 }

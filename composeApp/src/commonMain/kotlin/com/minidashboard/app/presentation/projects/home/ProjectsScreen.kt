@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.minidashboard.app.data.models.ProjectModel
 import io.github.aakira.napier.Napier
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -41,13 +42,12 @@ fun ProjectScreen(
         is ProjectsState.Data -> listProjects(
             state = state,
             router = object : ProjectsScreenRouter {
-                override fun onTap(project: String) {
+                override fun onTap(project: ProjectModel) {
                     Napier.d { "ProjectScreen onTap $project" }
-                    when (project.startsWith("+")){
+                    when (project.uuid == "new") {
                         true -> onNewProject()
                         false -> router.onTap(project)
                     }
-
                 }
 
                 override fun onNewProject() {
@@ -90,9 +90,9 @@ fun listProjects(
                     horizontalAlignment =  Alignment.CenterHorizontally,
                     modifier = Modifier.padding(8.dp)
                 ) {
-                    CircularIconWithLetter(item)
+                    CircularIconWithLetter(item.name)
                     Text(
-                        text = item,
+                        text = item.name,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .fillMaxWidth()

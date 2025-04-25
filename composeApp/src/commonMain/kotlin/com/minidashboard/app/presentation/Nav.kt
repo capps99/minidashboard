@@ -2,12 +2,16 @@ package com.minidashboard.app.presentation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.minidashboard.app.data.models.ProjectModel
+import com.minidashboard.app.presentation.data.DataScreen
 import com.minidashboard.app.presentation.home.HomeScreen
 import com.minidashboard.app.presentation.monitor.create.CreateMonitorScreen
 import com.minidashboard.app.presentation.monitor.home.MonitorScreen
+import com.minidashboard.app.presentation.projects.create.ProjectCreateScreen
 import com.minidashboard.app.presentation.projects.home.ProjectScreen
 import com.minidashboard.app.presentation.projects.home.ProjectsCardsRouter
 import com.minidashboard.app.presentation.widgets.TemplateScreen
+import minidashboard.composeapp.generated.resources.*
 import minidashboard.composeapp.generated.resources.Res
 import minidashboard.composeapp.generated.resources.monitor_title
 import minidashboard.composeapp.generated.resources.projects_create
@@ -35,15 +39,26 @@ fun Nav(modifier: Modifier = Modifier) {
                 onBackPressed = { navigator.popBackStack() }
             ) {
                 HomeScreen(
-                    goToMonitor = {
-                        navigator.navigate(Route.Projects.Monitor.HOME)
-                    },
+                    goToMonitor = {},
                     goToProjects = {
                         navigator.navigate(Route.Projects.HOME)
+                    },
+                    goToSettings = {
+                        navigator.navigate(Route.SETTINGS)
                     }
                 )
             }
         }
+        // regiuon settings
+        scene( route = Route.SETTINGS ){
+            TemplateScreen(
+                title = stringResource(Res.string.settings_title),
+                onBackPressed = { navigator.popBackStack() }
+            ) {
+                DataScreen()
+            }
+        }
+        // endregion
         // region Projects
         scene( route = Route.Projects.HOME ){
             TemplateScreen(
@@ -52,8 +67,8 @@ fun Nav(modifier: Modifier = Modifier) {
             ) {
                 ProjectScreen(
                     router = object : ProjectsCardsRouter {
-                        override fun onTap(project: String) {
-                            val route = Route.Projects.DASHBOARD.replace("{project}", project)
+                        override fun onTap(project: ProjectModel) {
+                            val route = Route.Projects.DASHBOARD.replace("{project}", project.uuid)
                             navigator.navigate(route)
                         }
 
@@ -74,11 +89,19 @@ fun Nav(modifier: Modifier = Modifier) {
                 onBackPressed = { navigator.popBackStack() }
             ) {
                 MonitorScreen(
+                    projectUUID = project,
                     onCreateMonitor = {
-                        navigator.navigate(Route.Monitor.CREATE)
+                        val route = Route.Projects.Monitor.CREATE
+                            .replace("{project}", project)
+                            //.replace("{uuid}", "")
+                        navigator.navigate(route)
                     },
                     onEditProccess = { selected ->
-                        navigator.navigate("${Route.Monitor.CREATE}/${selected.task.common.uuid}")
+                        val taskId = selected.task?.uuid ?: "undefined"
+                        val route = Route.Projects.Monitor.CREATE
+                            .replace("{project}", project)
+                            .replace("{uuid}", taskId)
+                        navigator.navigate(route)
                     }
                 )
             }
@@ -90,20 +113,24 @@ fun Nav(modifier: Modifier = Modifier) {
                 title = stringResource(Res.string.projects_create),
                 onBackPressed = { navigator.popBackStack() }
             ) {
-
+                ProjectCreateScreen(
+                    onBackPressed = { navigator.popBackStack() }
+                )
             }
         }
         // endregion
         scene(
-            route = "${Route.Monitor.CREATE}/{uuid}?"
+            route = Route.Projects.Monitor.CREATE
         ) {backStackEntry ->
             val uuid: String? = backStackEntry.path<String>("uuid")
+            val project: String = backStackEntry.path<String>("project") ?: return@scene
 
             TemplateScreen(
-                title = "Monitor/create/",
+                title = "$project/monitor/create/",
                 onBackPressed = { navigator.popBackStack() }
             ) {
                 CreateMonitorScreen(
+                    projectUUID = project,
                     uuid = uuid
                 )
             }
@@ -113,9 +140,9 @@ fun Nav(modifier: Modifier = Modifier) {
 
 object Route {
     // SPLASH
-    const val
-    SPLASH = "/screen/splash"
+    const val SPLASH = "/screen/splash"
     const val HOME = "/screen/home"
+    const val SETTINGS = "/screen/settings"
 
     object Projects {
         const val HOME = "/screen/projects/home"
@@ -124,14 +151,8 @@ object Route {
 
         object Monitor {
             const val HOME = "/screen/projects/{project}/monitor"
+            const val CREATE = "/screen/projects/{project}/monitor/create"
         }
-    }
-
-    object Monitor {
-        const val HOMEsss = "/screen/monitor/home"
-        const val CREATE = "/screen/monitor/create"
-
-        const val EDIT = "/screen/monitor/edit"
     }
 
 }

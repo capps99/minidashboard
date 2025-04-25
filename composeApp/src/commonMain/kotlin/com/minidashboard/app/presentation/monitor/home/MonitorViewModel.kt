@@ -3,11 +3,9 @@ package com.minidashboard.app.presentation.monitor.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.minidashboard.app.data.models.CommandResult
-import com.minidashboard.app.data.models.HttpResult
-import com.minidashboard.app.data.models.ProccessResult
-import com.minidashboard.app.data.models.Task
+import com.minidashboard.app.data.models.*
 import com.minidashboard.app.domain.app.*
+import com.minidashboard.app.domain.app.projects.ProjectsUseCase
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -17,13 +15,16 @@ import kotlinx.coroutines.sync.withLock
 sealed interface MonitorState {
     data object Initial : MonitorState
     data class Data(
+        val project: ProjectModel,
         val crons: Map<String, CronItem> = emptyMap(),
         val isProcessRuning: Boolean = false,
     ) : MonitorState
 }
 
 sealed interface MonitorActions {
-    data object Load : MonitorActions
+    data class Load(
+        val projectUUID: String,
+    ) : MonitorActions
     data object Start : MonitorActions
     data object Stop : MonitorActions
     data class Edit(
@@ -32,6 +33,7 @@ sealed interface MonitorActions {
 }
 
 class MonitorViewModel(
+    private val projectsUseCase: ProjectsUseCase,
     private val cronUseCase: CronUseCase,
 ) : ViewModel() {
 
@@ -41,27 +43,36 @@ class MonitorViewModel(
 
     fun processAction(action: MonitorActions) {
         when (action) {
-            MonitorActions.Load -> load()
+            is MonitorActions.Load -> load(action)
             MonitorActions.Start -> start()
             MonitorActions.Stop -> stop()
             is MonitorActions.Edit -> edit(action.cronItem)
         }
     }
 
-    private fun load() {
+    private fun load(action: MonitorActions.Load) {
         Napier.d { "start load" }
         viewModelScope.launch {
             /*val crons = cronUseCase.list().collect {
                 Napier.d { "Cron inserted: " }
             }*/
+            val project = projectsUseCase.find(action.projectUUID)?: run {
+                Napier.w { "Can't fin project by ID" }
+                return@launch
+            }
 
             val data = MonitorState.Data(
-                crons = cronUseCase.list().map { cron ->
-                    cron.common.uuid to CronItem(
-                        task = cron,
-                        statuses = emptyList(),
-                    )
-                }.toMap(),
+                project = project,
+                crons = project.crons.map { cron ->
+                    val uuid = cron.uuid ?: "undefined"
+                    val task = cron.toTask()
+                    task?.let {
+                        uuid to CronItem(
+                            task = task,
+                            statuses = emptyList()
+                        )
+                    }
+                }.filterNotNull().toMap(),
                 isProcessRuning = isProcessesRunning(),
             )
 

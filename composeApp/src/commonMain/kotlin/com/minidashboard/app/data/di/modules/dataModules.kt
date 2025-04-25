@@ -9,4 +9,5 @@ val dataModules = module {
     factory { CronDAO(get()) }
     factory { CronDataSource(get(), get()) }
     factory { ProjectsDataSource(get(), get()) }
+    factory { ProjectsDataSource(get(), get()) }
 }

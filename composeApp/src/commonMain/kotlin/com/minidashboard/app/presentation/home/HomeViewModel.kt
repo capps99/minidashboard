@@ -1,6 +1,7 @@
 package com.minidashboard.app.presentation.home
 
 import androidx.lifecycle.ViewModel
+import com.minidashboard.app.domain.app.projects.ProjectsUseCase
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -15,7 +16,9 @@ sealed interface HomeActions {
     data object TapProjects: HomeActions
 }
 
-class HomeViewModel : ViewModel(){
+class HomeViewModel(
+    private val projectsUseCase: ProjectsUseCase,
+) : ViewModel(){
 
     var state = MutableStateFlow(HomeState.Initial)
         private set
@@ -28,7 +31,7 @@ class HomeViewModel : ViewModel(){
 
             HomeActions.TapMonitor ->  Napier.d { "HomeViewModel - TapMonitor tapped!" }
             HomeActions.TapProjects -> Napier.d { "HomeViewModel - Tap Projects tapped!" }
+            HomeActions.TapButton -> TODO()
         }
     }
-
 }

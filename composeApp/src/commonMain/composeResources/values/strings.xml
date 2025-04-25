@@ -6,8 +6,19 @@
     <string name="signup_button">Sign Up</string>
     <string name="logout_message">You have logged out successfully.</string>
 
+    <string name="home_data_title">Data</string>
+    <string name="home_data_import">Import</string>
+    <string name="home_data_export">Export</string>
+    <string name="home_data_clear">Clear</string>
+
     <string name="projects_title">Projects</string>
     <string name="projects_create">Projects/Create</string>
+    <string name="projects_create_name">Name</string>
+    <string name="projects_create_description">Description</string>
+
     <string name="monitor_title">Monitor</string>
+    <string name="monitor_never">Never</string>
+
+    <string name="settings_title">Settings</string>
 
 </resources>

@@ -16,7 +16,7 @@ expect class CronDataSource(
         active: Boolean
     )
 
-    fun list(): List<ProjectModel>
+    fun list(): List<CronModel>
 
     fun delete(
         uuid: String,

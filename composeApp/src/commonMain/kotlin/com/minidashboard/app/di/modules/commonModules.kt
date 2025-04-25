@@ -2,6 +2,7 @@ package com.minidashboard.app.di.modules
 
 import com.minidashboard.app.Platform
 import com.minidashboard.app.getPlatform
+import com.minidashboard.app.presentation.data.DataViewModel
 import com.minidashboard.app.presentation.home.HomeViewModel
 import com.minidashboard.app.presentation.monitor.create.CreateMonitorViewModel
 import com.minidashboard.app.presentation.monitor.create.command.CommandScreenViewModel
@@ -16,12 +17,13 @@ val commonModules = module {
     single<Platform> { getPlatform() }
     single<Settings> { Settings() }
 
-    factory { HomeViewModel() }
+    factory { HomeViewModel(get()) }
     factory { ProjectsViewModel(get()) }
-    factory { MonitorViewModel(get()) }
-    factory { CreateMonitorViewModel(get()) }
+    factory { MonitorViewModel(get(), get()) }
+    factory { CreateMonitorViewModel(get(), get()) }
     factory { HttpScreenViewModel() }
     factory { CommandScreenViewModel() }
-    factory { ProjectCreateViewModel() }
+    factory { ProjectCreateViewModel(get()) }
+    factory { DataViewModel(get()) }
 
 }

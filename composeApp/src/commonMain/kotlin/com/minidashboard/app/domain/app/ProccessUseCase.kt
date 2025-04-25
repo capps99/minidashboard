@@ -14,7 +14,7 @@ typealias Result = Pair<ProccessResult, Boolean>
 
 data class CronItem(
     val task: Task,
-    val statuses: List<Status>
+    val statuses: List<Status> = emptyList()
 )
 
 enum class Status(val color: Color) {
@@ -70,7 +70,7 @@ fun startProcesses(
                             onLaunched(process.task)
 
                             val task = item.task
-                            task.execute { result ->
+                            task?.execute { result ->
                                 launch {
                                     task.validate()
                                         .also { valid ->
